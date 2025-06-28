@@ -81,7 +81,7 @@
                 let response;
                 if (method === 'GET') {
                     // Example: Passing a 'name' parameter via query string for GET
-                    response = await fetch(`${GCF_URL}?name=GitHubUser`, {
+                    response = await fetch(`${GCF_URL}`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
