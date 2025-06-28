@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First GitHub Page</title>
+    <title>My First GitHub Page with GCF Call</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,21 +26,101 @@
             max-width: 600px;
             margin: 20px auto;
         }
-        a {
-            color: #007bff;
-            text-decoration: none;
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
         }
-        a:hover {
-            text-decoration: underline;
+        button:hover {
+            background-color: #218838;
+        }
+        #response-output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            text-align: left;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            font-family: monospace;
+            word-wrap: break-word;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Hello from My GitHub Page!</h1>
-        <p>This is a super simple website hosted directly from a GitHub repository.</p>
-        <p>I'm learning about web hosting and serverless backends.</p>
-        <p>You can find the source code for this page on <a href="https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME">GitHub</a>.</p>
+        <p>This is a simple website hosted directly from a GitHub repository.</p>
+        <p>Click the button below to call your Google Cloud Function!</p>
+
+        <button id="callApiButton">Call Google Cloud Function (GET)</button>
+        <button id="callApiButtonPost">Call Google Cloud Function (POST)</button>
+
+        <h3>Function Response:</h3>
+        <pre id="response-output">Awaiting response...</pre>
+
+        <p>Check your browser's developer console (F12) for more detailed output.</p>
+        <p>You can find the source code for this page on <a href="https://github.com/dominiquesommers/travelmap">GitHub</a>.</p>
     </div>
+
+    <script>
+        // Your Google Cloud Function URL
+        const GCF_URL = 'https://function-test-307804410649.europe-west1.run.app/?name=activities';
+
+        const responseOutput = document.getElementById('response-output');
+
+        async function callGoogleFunction(method) {
+            responseOutput.textContent = `Calling GCF with ${method} request...`;
+            console.log(`--- Initiating ${method} call to GCF ---`);
+
+            try {
+                let response;
+                if (method === 'GET') {
+                    // Example: Passing a 'name' parameter via query string for GET
+                    response = await fetch(`${GCF_URL}?name=GitHubUser`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } else if (method === 'POST') {
+                    // Example: Passing a 'name' parameter via JSON body for POST
+                    response = await fetch(GCF_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name: 'GitHubUserViaPost' })
+                    });
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('GCF Response Data:', data);
+                responseOutput.textContent = JSON.stringify(data, null, 2); // Pretty print JSON
+
+            } catch (error) {
+                console.error('Error calling Google Cloud Function:', error);
+                responseOutput.textContent = `Error: ${error.message}`;
+            } finally {
+                console.log(`--- ${method} Call to GCF Finished ---`);
+            }
+        }
+
+        // Add event listeners to the buttons
+        document.getElementById('callApiButton').addEventListener('click', () => callGoogleFunction('GET'));
+        document.getElementById('callApiButtonPost').addEventListener('click', () => callGoogleFunction('POST'));
+
+        // Optionally, make a call on page load (uncomment if desired)
+        // window.onload = () => callGoogleFunction('GET');
+
+    </script>
 </body>
 </html>
