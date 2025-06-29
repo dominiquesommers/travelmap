@@ -11,9 +11,7 @@ class TravelApp {
   }
 
   map_loaded = () => {
-    backend_communication.call_google_function('GET', 'load_data', {}, (data) => {
-      console.log(data);
-    });
+    backend_communication.call_google_function('GET', 'load_data', {}, this.data_loaded);
     // backend_communication.fetch('/travel/load_data/',{}, this.data_loaded );
     // window.onbeforeunload = () => {
     //   const center = this.map_handler.map.getCenter();

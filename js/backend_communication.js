@@ -27,7 +27,7 @@ class Communication {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
-      } else if (method === 'POST') {
+      } else if (http_method === 'POST') {
         response = await fetch(`${this.GCF_URL}?${params.toString()}`, {
             method: 'POST',
             headers: {  'Content-Type': 'application/json' },
@@ -45,7 +45,7 @@ class Communication {
       callback_data['status'] = 'NOT OK';
       callback_data['error'] = error;
     } finally {
-      console.log(`--- ${method} Call to GCF Finished ---`);
+      console.log(`--- ${http_method} Call to GCF Finished ---`);
       callback(callback_data);
     }
   }
