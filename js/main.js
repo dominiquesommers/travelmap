@@ -27,12 +27,12 @@ class TravelApp {
     this.map_handler.map.jumpTo({center: [data['general']['lat'], data['general']['lng']]});
     this.map_handler.map.setZoom(data['general']['zoom']);
 
-    this.map_handler.load_image('/static/icons/bus.png', `direction_bus`, (image) => {});
-    this.map_handler.load_image('/static/icons/boat.png', `direction_boat`, (image) => {});
-    this.map_handler.load_image('/static/icons/train.png', `direction_train`, (image) => {});
-    this.map_handler.load_image('/static/icons/car.png', `direction_car`, (image) => {});
-    this.map_handler.load_image('/static/icons/plane.png', `direction_plane`, (image) => {});
-    this.map_handler.load_image('/static/icons/arrow.png', `direction_arrow`, (image) => {});
+    this.map_handler.load_image('icons/bus.png', `direction_bus`, (image) => {});
+    this.map_handler.load_image('icons/boat.png', `direction_boat`, (image) => {});
+    this.map_handler.load_image('icons/train.png', `direction_train`, (image) => {});
+    this.map_handler.load_image('icons/car.png', `direction_car`, (image) => {});
+    this.map_handler.load_image('icons/plane.png', `direction_plane`, (image) => {});
+    this.map_handler.load_image('icons/arrow.png', `direction_arrow`, (image) => {});
 
     for (const [country_id, country_data] of Object.entries(data.countries)) {
       const country_seasons = Object.values(data.seasons).filter(season => (season.country === Number(country_id)));

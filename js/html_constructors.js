@@ -14,7 +14,6 @@ class SVGHandler {
     if (Object.keys(this.svgs).includes(filename)) {
       callback(this.svgs[filename]);
     } else {
-      // '/static/icons/camper.svg'
       const request = new XMLHttpRequest();
       request.open('GET', filename);
       request.setRequestHeader('Content-Type', 'image/svg+xml');
