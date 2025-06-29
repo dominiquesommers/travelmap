@@ -37,13 +37,14 @@ class Overview {
     this.start_date.id = 'start_date';
     this.start_date.value = undefined;
     this.start_date.onchange = () => {
-      backend_communication.fetch('/travel/set_start_date/',{'parameters': {'start_date': this.start_date.value}}, (data) => {
-        if (data['status'] === 'OK') {
-          this.maphandler.graph.update_dates();
-        } else {
-          console.log(data);
-        }
-      });
+      console.log('not implemented yet.')
+      // backend_communication.fetch('/travel/set_start_date/',{'parameters': {'start_date': this.start_date.value}}, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     this.maphandler.graph.update_dates();
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
     };
     const date_span3 = document.createElement('span');
     this.dates.appendChild(date_span3);
