@@ -23,7 +23,7 @@ class TravelApp {
     this.map_handler.graph.initializing_data = true;
 
     console.log('Response from server:', data);
-    this.map_handler.overview.start_date.value = data['general']['start_date'];
+    this.map_handler.overview.start_date.value = (new Date(data['general']['start_date'])).toISOString().split('T')[0];
     this.map_handler.map.jumpTo({center: [data['general']['lat'], data['general']['lng']]});
     this.map_handler.map.setZoom(data['general']['zoom']);
 
