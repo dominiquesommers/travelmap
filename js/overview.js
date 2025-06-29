@@ -145,9 +145,9 @@ class Overview {
     let rent_until_edge = undefined;
     let covered_places = new Set();
     let current_country = this.maphandler.graph.sorted_covered_visits[0].place.country.name;
-    console.log(current_country);
+    // console.log(current_country);
     this.maphandler.graph.sorted_covered_visits.forEach(visit => {
-      console.log(visit.place.get_id());
+      // console.log(visit.place.get_id());
       if (!(visit.place.country.name in country_costs)) {
         country_costs[visit.place.country.name] = {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0, nights: 0};
       }
@@ -688,6 +688,7 @@ class PlaceOverview {
   }
 
   add_activity = (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
+    if (description === undefined) description = '';
     let activity_id = id;
     const row_index = this.activities_table.rows.length;
     const row = this.activities_table.add_row(['activity-row']);
