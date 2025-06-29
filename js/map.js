@@ -302,7 +302,8 @@ class MapHandler {
     if (route_id === undefined) {
       const args = { 'parameters': {'source_id': source_id, 'destination_id': destination_id, 'route_type': route_type,
                                                      'distance': distance, 'duration': duration, 'cost': cost, 'nights': nights, 'route': route} };
-      backend_communication.fetch('/travel/add_route/', args, (data) => {
+      backend_communication.call_google_function('POST',
+        'add_route', args, (data) => {
         if (data['status'] === 'OK') {
           callback(this.add_route(data['route_id'], source_id, destination_id, route_type, distance, duration, cost, nights, route));
         } else {
@@ -310,6 +311,14 @@ class MapHandler {
           callback(undefined);
         }
       });
+      // backend_communication.fetch('/travel/add_route/', args, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     callback(this.add_route(data['route_id'], source_id, destination_id, route_type, distance, duration, cost, nights, route));
+      //   } else {
+      //     console.log(data);
+      //     callback(undefined);
+      //   }
+      // });
     } else {
       const new_route = new Route(route_id, this.places.value[source_id], this.places.value[destination_id], route_type, distance, duration, cost, nights, route, this);
       const routes = {};
@@ -335,13 +344,21 @@ class MapHandler {
 
   delete_route = (route) => {
     const args = { 'parameters': {'route_id': route.id} };
-    backend_communication.fetch('/travel/remove_route/', args, (data) => {
+    backend_communication.call_google_function('POST',
+      'remove_route', args, (data) => {
       if (data['status'] === 'OK') {
         this.remove_route(route);
       } else {
         console.log(data);
       }
     });
+    // backend_communication.fetch('/travel/remove_route/', args, (data) => {
+    //   if (data['status'] === 'OK') {
+    //     this.remove_route(route);
+    //   } else {
+    //     console.log(data);
+    //   }
+    // });
   }
 
   get_route_by_id = (route_id) => {

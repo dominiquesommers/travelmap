@@ -212,13 +212,21 @@ class Route {
   property_changed = (property, new_value, old_value, callback=()=>{}) => {
     // console.log(property);
     const args = { 'parameters': {'id': this.id, 'column': property, 'value': new_value} };
-    backend_communication.fetch('/travel/update_route/', args, (data) => {
+    backend_communication.call_google_function('POST',
+              'update_route', args, (data) => {
       if (data['status'] === 'OK') {
         callback();
       } else {
         console.log(data);
       }
     });
+    // backend_communication.fetch('/travel/update_route/', args, (data) => {
+    //   if (data['status'] === 'OK') {
+    //     callback();
+    //   } else {
+    //     console.log(data);
+    //   }
+    // });
     this.map_handler.graph.update_rent_info();
   }
 

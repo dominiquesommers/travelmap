@@ -31,13 +31,21 @@ class Place {
   add_visit = (visit_id, nights, included, callback=(new_visit)=>{}) => {
     if (visit_id === undefined) {
       const args = { 'parameters': {'place': this.id, 'nights': nights, 'included': included } };
-      backend_communication.fetch('/travel/add_visit/', args, (data) => {
+      backend_communication.call_google_function('POST',
+                'add_visit', args, (data) => {
         if (data['status'] === 'OK') {
           callback(this.add_visit(data['visit_id'], nights, included));
         } else {
           console.log(data);
         }
       });
+      // backend_communication.fetch('/travel/add_visit/', args, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     callback(this.add_visit(data['visit_id'], nights, included));
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
     } else {
       // console.log(`add visit ${visit_id}`)
       const new_visit = new Visit(visit_id, this, nights, included);
@@ -48,7 +56,8 @@ class Place {
 
   delete_visit = (visit_to_remove, callback=() => {}) => {
     const args = { 'parameters': {'visit_id': visit_to_remove.id} };
-    backend_communication.fetch('/travel/remove_visit/', args, (data) => {
+    backend_communication.call_google_function('POST',
+                'remove_visit', args, (data) => {
       if (data['status'] === 'OK') {
         const index = this.visits.value.indexOf(visit_to_remove);
         this.visits.value = [...this.visits.value.slice(0, index), ...this.visits.value.slice(index + 1)];
@@ -63,6 +72,21 @@ class Place {
         console.log(data);
       }
     });
+    // backend_communication.fetch('/travel/remove_visit/', args, (data) => {
+    //   if (data['status'] === 'OK') {
+    //     const index = this.visits.value.indexOf(visit_to_remove);
+    //     this.visits.value = [...this.visits.value.slice(0, index), ...this.visits.value.slice(index + 1)];
+    //     Object.values(this.map_handler.places.value).forEach((place) => {
+    //       place.visits.value.forEach((visit) => {
+    //         const edges_to_remove = visit._outgoing_edges.value.filter((edge) => edge.destination === visit_to_remove);
+    //         edges_to_remove.forEach((edge) => visit.remove_outgoing_edge(edge, false));
+    //       });
+    //     });
+    //     callback();
+    //   } else {
+    //     console.log(data);
+    //   }
+    // });
   }
 }
 
@@ -104,9 +128,13 @@ class Visit {
 
   nights_updated = (new_nights, old_value) => {
     const args = { 'parameters': {'id': this.id, 'column': 'nights', 'value': new_nights} };
-    backend_communication.fetch('/travel/update_visit/', args, (data) => {
+    backend_communication.call_google_function('POST',
+                'update_visit', args, (data) => {
       if (data['status'] === 'NOT OK') { console.log(data); }
     });
+    // backend_communication.fetch('/travel/update_visit/', args, (data) => {
+    //   if (data['status'] === 'NOT OK') { console.log(data); }
+    // });
   }
 
   set_included = (new_included, old_value) => {
@@ -116,9 +144,13 @@ class Visit {
 
   included_updated = (new_included, old_value) => {
     const args = { 'parameters': {'id': this.id, 'column': 'included', 'value': new_included} };
-    backend_communication.fetch('/travel/update_visit/', args, (data) => {
+    backend_communication.call_google_function('POST',
+                'update_visit', args, (data) => {
       if (data['status'] === 'NOT OK') { console.log(data); }
     });
+    // backend_communication.fetch('/travel/update_visit/', args, (data) => {
+    //   if (data['status'] === 'NOT OK') { console.log(data); }
+    // });
   }
 
   // update_next_edge = () => {
@@ -134,13 +166,21 @@ class Visit {
       console.log('priority');
       console.log(priority);
       const args = { 'parameters': {'source_visit_id': this.id, 'destination_visit_id': destination.id, 'route_id': route.id, 'priority': priority} };
-      backend_communication.fetch('/travel/add_edge/', args, (data) => {
+      backend_communication.call_google_function('POST',
+                'add_edge', args, (data) => {
         if (data['status'] === 'OK') {
           this.add_outgoing_edge(destination, route, priority, rent_until, includes_accommodation, false, index);
         } else {
           console.log(data);
         }
       });
+      // backend_communication.fetch('/travel/add_edge/', args, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     this.add_outgoing_edge(destination, route, priority, rent_until, includes_accommodation, false, index);
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
     } else {
       const edge = new Edge(this, destination, route, priority, rent_until, includes_accommodation);
       if (index === -1) {
@@ -154,13 +194,21 @@ class Visit {
   remove_outgoing_edge = (edge, update_db=true) => {
     if (update_db) {
       const args = { 'parameters': {'source_visit_id': edge.source.id, 'destination_visit_id': edge.destination.id, 'route_id': edge.route.id} };
-      backend_communication.fetch('/travel/remove_edge/', args, (data) => {
+      backend_communication.call_google_function('POST',
+                'remove_edge', args, (data) => {
         if (data['status'] === 'OK') {
           this.remove_outgoing_edge(edge, false);
         } else {
           console.log(data);
         }
       });
+      // backend_communication.fetch('/travel/remove_edge/', args, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     this.remove_outgoing_edge(edge, false);
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
     } else {
       console.log('remove edgeeeee')
       const index = this._outgoing_edges.value.indexOf(edge);
@@ -180,13 +228,21 @@ class Visit {
         console.log(`priority: ${priority}.`) // TODO fix priorities.
         const args = { 'parameters': {'source_visit_id': dragged_edge.source.id, 'destination_visit_id': dragged_edge.destination.id,
                                          'route_id': dragged_edge.route.id, 'column': 'priority', 'value': priority} };
-        backend_communication.fetch('/travel/update_edge/', args, (data) => {
+        backend_communication.call_google_function('POST',
+                  'update_edge', args, (data) => {
           if (data['status'] === 'OK') {
             this._outgoing_edges.value = ordered_edges;
           } else {
             console.log(data);
           }
         });
+        // backend_communication.fetch('/travel/update_edge/', args, (data) => {
+        //   if (data['status'] === 'OK') {
+        //     this._outgoing_edges.value = ordered_edges;
+        //   } else {
+        //     console.log(data);
+        //   }
+        // });
       }
     }
   };

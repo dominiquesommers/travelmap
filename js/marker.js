@@ -119,7 +119,8 @@ class VisitPopup {
     const rent_until_select = new HTMLSelect(options, [], (value) => {
       const args = {'parameters': {'source_visit_id': this.visit.id, 'destination_visit_id': this.visit.next_edge.value.destination.id,
           'route_id': this.visit.next_edge.value.route.id, 'column': 'rent_until', 'value': value}};
-      backend_communication.fetch('/travel/update_edge/', args, (data) => {
+      backend_communication.call_google_function('POST',
+        'update_edge', args, (data) => {
         if (data['status'] === 'OK') {
           this.visit.next_edge.value.rent_until = this.visit.place.map_handler.get_visit_by_id(value);
           this.visit.place.map_handler.graph.update_rent_info();
@@ -127,6 +128,14 @@ class VisitPopup {
           console.log(data);
         }
       });
+      // backend_communication.fetch('/travel/update_edge/', args, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     this.visit.next_edge.value.rent_until = this.visit.place.map_handler.get_visit_by_id(value);
+      //     this.visit.place.map_handler.graph.update_rent_info();
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
     }).select;
     rent_until_select.options[0].disabled = true;
 
@@ -163,7 +172,8 @@ class VisitPopup {
     checkbox.addEventListener('change', (event) => {
       const args = {'parameters': {'source_visit_id': this.visit.id, 'destination_visit_id': this.visit.next_edge.value.destination.id,
           'route_id': this.visit.next_edge.value.route.id, 'column': 'includes_accommodation', 'value': checkbox.checked}};
-      backend_communication.fetch('/travel/update_edge/', args, (data) => {
+      backend_communication.call_google_function('POST',
+      'update_edge', args, (data) => {
         if (data['status'] === 'OK') {
           this.visit.next_edge.value.includes_accommodation = checkbox.checked;
           this.visit.place.map_handler.graph.update_rent_info();
@@ -171,6 +181,15 @@ class VisitPopup {
           console.log(data);
         }
       });
+
+      // backend_communication.fetch('/travel/update_edge/', args, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     this.visit.next_edge.value.includes_accommodation = checkbox.checked;
+      //     this.visit.place.map_handler.graph.update_rent_info();
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
     });
   }
 
