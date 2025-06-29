@@ -100,8 +100,8 @@ class Place {
                 'get_activity_descriptions', {'place_id': this.id}, (data) => {
       console.log(data);
       const activities = data['activity_descriptions'];
-      Object.entries(activities).forEach((activity_id, description) => {
-        this.overview.activity_description_spans[activity_id].innerHTML = description;
+      activities.forEach((activity) => {
+        this.overview.activity_description_spans[activity['id']].innerHTML = activity['description'];
       });
       this.activities_descriptions_loaded = true;
     });
