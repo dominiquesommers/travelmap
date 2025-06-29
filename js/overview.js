@@ -743,7 +743,7 @@ class PlaceOverview {
         backend_communication.call_google_function('POST',
             'add_activity', args, (data) => {
           if (data['status'] === 'OK') {
-            activity_id = data['id'];
+            activity_id = data['activity_id'];
             checkbox.checked = true;
             checkbox.dispatchEvent(new Event('change'));
           } else {
