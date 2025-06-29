@@ -13,10 +13,12 @@ class TravelApp {
   map_loaded = () => {
     backend_communication.call_google_function('GET', 'load_data', {}, this.data_loaded);
     // backend_communication.fetch('/travel/load_data/',{}, this.data_loaded );
-    // window.onbeforeunload = () => {
-    //   const center = this.map_handler.map.getCenter();
-    //   backend_communication.fetch('/travel/set_last/',{'parameters': {'lat': center.lng, 'lng': center.lat, 'zoom': this.map_handler.map.getZoom()}}, () => {} );
-    // }
+    window.onbeforeunload = () => {
+      const center = this.map_handler.map.getCenter();
+      backend_communication.call_google_function('POST',
+          'set_last', {'parameters': {'lat': center.lng, 'lng': center.lat, 'zoom': this.map_handler.map.getZoom()}}, () => {} );
+      // backend_communication.fetch('/travel/set_last/',{'parameters': {'lat': center.lng, 'lng': center.lat, 'zoom': this.map_handler.map.getZoom()}}, () => {} );
+    }
   }
 
   data_loaded = (data) => {
