@@ -23,12 +23,12 @@ class Communication {
       let response;
       if (http_method === 'GET') {
         params = this.add_url_search_params(params, args);
-        response = await fetch(`${GCF_URL}?${params.toString()}`, {
+        response = await fetch(`${this.GCF_URL}?${params.toString()}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
       } else if (method === 'POST') {
-        response = await fetch(GCF_URL, {
+        response = await fetch(`${this.GCF_URL}?${params.toString()}`, {
             method: 'POST',
             headers: {  'Content-Type': 'application/json' },
             body: JSON.stringify(args)
