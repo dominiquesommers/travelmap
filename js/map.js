@@ -227,7 +227,9 @@ class MapHandler {
     if (place_id === undefined) {
       const args = { 'parameters': {'name': name, 'country': (country instanceof Country) ? country.name : country,
           'lat': coordinates.lat, 'lng': coordinates.lng , 'season_id': season?.id}};
-      backend_communication.fetch('/travel/add_place/', args, (data) => {
+      backend_communication.call_google_function('POST',
+          'add_place', args, (data) => {
+        console.log(data);
         if (data['status'] === 'OK') {
           if (!(country instanceof Country)) {
             this.countries[data['country_id']] = new Country(data['country_id'], country, []);
@@ -238,6 +240,17 @@ class MapHandler {
           console.log(data);
         }
       });
+      // backend_communication.fetch('/travel/add_place/', args, (data) => {
+      //   if (data['status'] === 'OK') {
+      //     if (!(country instanceof Country)) {
+      //       this.countries[data['country_id']] = new Country(data['country_id'], country, []);
+      //       country = this.countries[data['country_id']];
+      //     }
+      //     this.add_place(data['place_id'], name, country, coordinates, season);
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
     } else {
       const new_place = {};
       costs = (costs !== undefined) ? costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
@@ -249,7 +262,9 @@ class MapHandler {
 
   delete_place = (place) => {
     const args = { 'parameters': {'place_id': place.id }};
-    backend_communication.fetch('/travel/remove_place/', args, (data) => {
+    backend_communication.call_google_function('POST',
+          'remove_place', args, (data) => {
+      console.log(data);
       if (data['status'] === 'OK') {
         place.marker.popup.remove();
         place.marker.marker.remove();
@@ -264,6 +279,22 @@ class MapHandler {
         console.log(data);
       }
     });
+
+    // backend_communication.fetch('/travel/remove_place/', args, (data) => {
+    //   if (data['status'] === 'OK') {
+    //     place.marker.popup.remove();
+    //     place.marker.marker.remove();
+    //     delete this.places.value[place.id];
+    //     this.places.value = {...this.places.value}
+    //     Object.values(this.routes.value).forEach((route) => {
+    //       if (route.source === place || route.destination === place) {
+    //         this.remove_route(route);
+    //       }
+    //     });
+    //   } else {
+    //     console.log(data);
+    //   }
+    // });
   }
 
   add_route = (route_id, source_id, destination_id, route_type=undefined, distance=0, duration=0,

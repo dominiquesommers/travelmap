@@ -432,9 +432,14 @@ class PlaceOverview {
     this.html.appendChild(this.title);
     const place_name = new HTMLText(`${this.place.name}`, [], (value) => {
       const args = {'parameters': {'place_id': this.place.id, 'column': `name`, 'value': value}};
-      backend_communication.fetch('/travel/update_place/', args, (data) => {
+      backend_communication.call_google_function('POST',
+          'update_place', args, (data) => {
+        console.log(data);
         if (data['status'] !== 'OK') console.log(data);
       });
+      // backend_communication.fetch('/travel/update_place/', args, (data) => {
+      //   if (data['status'] !== 'OK') console.log(data);
+      // });
     }, 'span', true).span;
     this.title.appendChild(place_name);
     const country_span = document.createElement('span');
@@ -556,7 +561,10 @@ class PlaceOverview {
 
   season_changed = (event) => {
     const args = { 'parameters': {'place_id': this.place.id, 'column': 'season_id', 'value': this.season_select.value}};
-    backend_communication.fetch('/travel/update_place/', args, (data) => {
+
+    backend_communication.call_google_function('POST',
+          'update_place', args, (data) => {
+      console.log(data);
       if (data['status'] === 'OK') {
         console.log(this.place.country.seasons);
         this.place.season = this.place.country.seasons.filter(s => s.id === Number(this.season_select.value))[0];
@@ -568,6 +576,20 @@ class PlaceOverview {
         this.season_select.value = this.place.season.id;
       }
     });
+
+
+    // backend_communication.fetch('/travel/update_place/', args, (data) => {
+    //   if (data['status'] === 'OK') {
+    //     console.log(this.place.country.seasons);
+    //     this.place.season = this.place.country.seasons.filter(s => s.id === Number(this.season_select.value))[0];
+    //     this.place.map_handler.overview.update_route();
+    //     this.add_season_table();
+    //     console.log(this.place);
+    //   } else {
+    //     console.log(data);
+    //     this.season_select.value = this.place.season.id;
+    //   }
+    // });
   }
 
   add_accommodation = () => {
@@ -610,9 +632,15 @@ class PlaceOverview {
       const cost_cell = costs_table.add_cell(1, ['activity-cell', 'cost']);
       const cost_span = new HTMLNumber([], (value) => {
         const args = {'parameters': {'place_id': this.place.id, 'column': `${cost_type}_cost`, 'value': value}};
-        backend_communication.fetch('/travel/update_place/', args, (data) => {
+        backend_communication.call_google_function('POST',
+          'update_place', args, (data) => {
+          console.log(data);
           if (data['status'] !== 'OK') console.log(data)
         });
+
+        // backend_communication.fetch('/travel/update_place/', args, (data) => {
+        //   if (data['status'] !== 'OK') console.log(data)
+        // });
       }).span;
       cost_span.innerHTML = this.place.costs[cost_type];
       cost_cell.appendChild(cost_span);
