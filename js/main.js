@@ -73,7 +73,7 @@ class TravelApp {
 }
 
 main = () => {
-  const access_token = 'pk.eyJ1IjoiZG9taW5pcXVlc29tbWVycyIsImEiOiJjanF3ODdvbHgwMG1xNDhsZTFzc2pkenJsIn0.08RRBKQI38ZgRYrro3xqcA';
+  const access_token = 'pk.eyJ1IjoiZG9taW5pcXVlc29tbWVycyIsImEiOiJjbWNoeHNnZG4wMHk1MmtzOGtodnluZHJzIn0.j0bybMxwa2BK4UgPIhxpQw';
   const travel_app = new TravelApp(access_token);
 }
 
