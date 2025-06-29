@@ -91,6 +91,7 @@ class Place {
   }
 
   get_activity_descriptions = () => {
+    console.log('get_activity_descriptions');
     if (this.activities_descriptions_loaded) {
       return;
     }
@@ -102,6 +103,7 @@ class Place {
       Object.entries(activities).forEach((activity_id, description) => {
         this.overview.activity_description_spans[activity_id].innerHTML = description;
       });
+      this.activities_descriptions_loaded = true;
     });
   }
 }
