@@ -68,6 +68,7 @@ class Communication {
 
 
   fetch = (backend_method, args, callback) => {
+    return
     fetch(backend_method, {
       method: 'POST',
       headers: {
