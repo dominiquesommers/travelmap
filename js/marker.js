@@ -549,6 +549,7 @@ class PlaceMarker {
         .setPopup(this.popup);
     this.popup.on('open', () => {
       this.marker.addClassName('highlighted');
+      this.place.get_activity_descriptions();
       this.place.map_handler.overview.set_html(this.place.overview.html);
     });
     this.popup.on('close', () => {

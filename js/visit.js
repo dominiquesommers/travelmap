@@ -18,6 +18,7 @@ class Place {
         { jan: 1, feb: 1, mar: 1, apr: 1, may: 1, jun: 1, jul: 1, aug: 1, sep: 1, oct: 1, nov: 1, dec: 1, description: 'default', description_abbreviation: 'D' };
     this.costs = costs;
     this.activities = activities;
+    this.activities_descriptions_loaded = false;
     this.visits = new Observable([]);
     this.map_handler = map_handler;
     this.marker = new PlaceMarker(this, map_handler);
@@ -87,6 +88,21 @@ class Place {
     //     console.log(data);
     //   }
     // });
+  }
+
+  get_activity_descriptions = () => {
+    if (this.activities_descriptions_loaded) {
+      return;
+    }
+    // TODO get and set activity descriptions
+    backend_communication.call_google_function('GET',
+                'get_activities', {'get_activity_descriptions': this.id}, (data) => {
+      console.log(data);
+      const activities = data['activity_descriptions'];
+      Object.entries(activities).forEach((activity_id, description) => {
+        this.overview.activity_description_spans[activity_id].innerHTML = description;
+      });
+    });
   }
 }
 

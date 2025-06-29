@@ -110,7 +110,7 @@ class Overview {
           'days': 0, 'sum_score': 0});
       }
       const days = Object.values(next_visit.month_days).reduce((a, b) => a + b, 0);
-      const sum_score = Object.entries(next_visit.month_days).map(([month,days]) => next_visit.place.season[month]*days).reduce((a, b) => a + b, 0);
+      const sum_score = Object.entries(next_visit.month_days).map(([month, days]) => next_visit.place.season[month]*days).reduce((a, b) => a + b, 0);
       country_scores[country_scores.length - 1]['days'] += days;
       country_scores[country_scores.length - 1]['sum_score'] += sum_score;
       full_score['days'] += days;
@@ -684,6 +684,7 @@ class PlaceOverview {
     });
 
     const activities_container = document.createElement('div');
+    this.activity_description_spans = {};
     // activities_container.style = 'max-height: 400px; overflow-y: auto;'
     activities_container.style = 'width: 100%;'
 
@@ -736,9 +737,9 @@ class PlaceOverview {
       //   if (data['status'] !== 'OK') console.log(data)
       // });
     });
-    const description_span = new HTMLText(description, ['activity-description'], (value, old_value) => {
+    this.activity_description_spans[activity_id] = new HTMLText(description, ['activity-description'], (value, old_value) => {
       if (activity_id === undefined && old_value === 'Edit description to save') {
-        // console.log('NEW and edited wiehoe.')
+        console.log('NEW and edited.')
         const args = {'parameters': {'place_id': this.place.id, 'description': value, 'category': category_select.value, 'cost': Number(cost_span.innerHTML), 'included': checkbox.checked}};
         backend_communication.call_google_function('POST',
             'add_activity', args, (data) => {
@@ -761,6 +762,7 @@ class PlaceOverview {
         // });
       } else {
         const args = {'parameters': {'activity_id': activity_id, 'column': 'description', 'value': value}};
+        console.log('EDITED ACTIVITY.')
         backend_communication.call_google_function('POST',
             'update_activity', args, (data) => {
           if (data['status'] !== 'OK') console.log(data);
@@ -772,7 +774,7 @@ class PlaceOverview {
       // console.log('updated activity:', value, old_value);
     }).span;
     const description_cell = this.activities_table.add_cell(row_index, ['activity-description-cell']);
-    description_cell.appendChild(description_span);
+    description_cell.appendChild(this.activity_description_spans[activity_id]);
     const category_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'category']);
     if (emoji !== undefined && !Object.keys(activity_icons).includes(category)) {
       activity_icons[category] = emoji;
