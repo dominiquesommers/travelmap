@@ -772,9 +772,9 @@ class PlaceOverview {
         // });
       }
       // console.log('updated activity:', value, old_value);
-    }).span;
+    });
     const description_cell = this.activities_table.add_cell(row_index, ['activity-description-cell']);
-    description_cell.appendChild(this.activity_description_spans[activity_id]);
+    description_cell.appendChild(this.activity_description_spans[activity_id].span);
     const category_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'category']);
     if (emoji !== undefined && !Object.keys(activity_icons).includes(category)) {
       activity_icons[category] = emoji;

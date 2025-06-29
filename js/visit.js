@@ -101,7 +101,8 @@ class Place {
       console.log(data);
       const activities = data['activity_descriptions'];
       activities.forEach((activity) => {
-        this.overview.activity_description_spans[activity['id']].innerHTML = activity['description'];
+        this.overview.activity_description_spans[activity['id']].span.innerHTML = activity['description'];
+        this.overview.activity_description_spans[activity['id']].process();
       });
       this.activities_descriptions_loaded = true;
     });
