@@ -97,7 +97,7 @@ class Place {
     }
     // TODO get and set activity descriptions
     backend_communication.call_google_function('GET',
-                'get_activities', {'get_activity_descriptions': this.id}, (data) => {
+                'get_activity_descriptions', {'place_id': this.id}, (data) => {
       console.log(data);
       const activities = data['activity_descriptions'];
       Object.entries(activities).forEach((activity_id, description) => {
