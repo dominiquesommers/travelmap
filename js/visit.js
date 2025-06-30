@@ -95,10 +95,12 @@ class Place {
     if (this.activities_descriptions_loaded) {
       return;
     }
-    // TODO get and set activity descriptions
+    Object.values(this.overview.activity_description_spans).forEach((html_span) => {
+      html_span.span.innerHTML = 'Loading...';
+      html_span.process();
+    });
     backend_communication.call_google_function('GET',
                 'get_activity_descriptions', {'place_id': this.id}, (data) => {
-      console.log(data);
       const activities = data['activity_descriptions'];
       activities.forEach((activity) => {
         this.overview.activity_description_spans[activity['id']].span.innerHTML = activity['description'];
