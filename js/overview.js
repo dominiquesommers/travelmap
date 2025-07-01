@@ -483,6 +483,14 @@ class PlaceOverview {
     const divider4 = document.createElement('span');
     divider4.innerHTML = '<hr>';
     this.html.appendChild(divider4);
+
+    this.notes_div = document.createElement('div');
+    this.html.appendChild(this.notes_div);
+    this.add_notes();
+
+    const divider5 = document.createElement('span');
+    divider5.innerHTML = '<hr>';
+    this.html.appendChild(divider5)
   }
 
   add_visits = () => {
@@ -733,9 +741,6 @@ class PlaceOverview {
           'update_activity', args, (data) => {
         if (data['status'] !== 'OK') console.log(data)
       });
-      // backend_communication.fetch('/travel/update_activity/', args, (data) => {
-      //   if (data['status'] !== 'OK') console.log(data)
-      // });
     });
     this.activity_description_spans[activity_id] = new HTMLText(description, ['activity-description'], (value, old_value) => {
       if (activity_id === undefined && old_value === 'Edit description to save') {
@@ -751,15 +756,6 @@ class PlaceOverview {
             console.log(data);
           }
         });
-        // backend_communication.fetch('/travel/add_activity/', args, (data) => {
-        //   if (data['status'] === 'OK') {
-        //     activity_id = data['id'];
-        //     checkbox.checked = true;
-        //     checkbox.dispatchEvent(new Event('change'));
-        //   } else {
-        //     console.log(data);
-        //   }
-        // });
       } else {
         const args = {'parameters': {'activity_id': activity_id, 'column': 'description', 'value': value}};
         console.log('EDITED ACTIVITY.')
@@ -767,9 +763,6 @@ class PlaceOverview {
             'update_activity', args, (data) => {
           if (data['status'] !== 'OK') console.log(data);
         });
-        // backend_communication.fetch('/travel/update_activity/', args, (data) => {
-        //   if (data['status'] !== 'OK') console.log(data)
-        // });
       }
       // console.log('updated activity:', value, old_value);
     });
@@ -787,9 +780,6 @@ class PlaceOverview {
             'update_activity', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-      // backend_communication.fetch('/travel/update_activity/', args, (data) => {
-      //   if (data['status'] !== 'OK') console.log(data)
-      // });
     }).select;
     category_select.value = category;
     category_cell.appendChild(category_select);
@@ -801,9 +791,6 @@ class PlaceOverview {
             'update_activity', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-      // backend_communication.fetch('/travel/update_activity/', args, (data) => {
-      //   if (data['status'] !== 'OK') console.log(data)
-      // });
     }).span;
     cost_span.innerHTML = cost;
     cost_cell.appendChild(cost_span);
@@ -823,20 +810,135 @@ class PlaceOverview {
             console.log(data)
           }
         });
-        // backend_communication.fetch('/travel/remove_activity/', args, (data) => {
-        //   if (data['status'] === 'OK') {
-        //     this.activities_table.table.deleteRow(row.rowIndex);
-        //   } else {
-        //     console.log(data)
-        //   }
-        // });
       }
     });
-    delete_icon.innerHTML = '🗑️'; //<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    delete_icon.innerHTML = '🗑️';
   }
 
-  change_description_callback = (value, old_value) => {
+  add_notes = () => {
+    const notes_title = document.createElement('h3');
+    this.notes_div.appendChild(notes_title);
+    const title = document.createElement('span');
+    notes_title.appendChild(title);
+    title.innerHTML = 'Notes:'
 
+    const notes_container = document.createElement('div');
+    this.note_description_spans = {};
+    // activities_container.style = 'max-height: 400px; overflow-y: auto;'
+    notes_container.style = 'width: 100%;'
+
+    add_collapsible(title, notes_container, '40vh');
+
+    // activities_container.style = 'width: 100%; max-height: 40%; overflow-y: auto;'
+    this.notes_div.appendChild(notes_container);
+    this.notes_table = new HTMLTable(['activity-table']);
+
+    notes_container.appendChild(this.notes_table.table);
+    const row1 = this.notes_table.add_header(['activity-title-row']);
+    this.notes_table.add_cell(0).innerHTML = '';
+    this.notes_table.add_cell(0, ['act-description-title']).innerHTML = 'Description';
+    this.notes_table.add_cell(0).innerHTML = 'Cat.';
+    this.notes_table.add_cell(0).innerHTML = '€';
+
+    this.place.notes.forEach((note) => {
+      this.add_note(note.id, note.included, note.description, note.category, note.cost);
+    });
+
+    const add_note_container = document.createElement('div');
+    notes_container.appendChild(add_note_container);
+    add_note_container.style = 'padding: 3px; width: 100%; text-align: center;'
+    const add_note = document.createElement('span');
+    add_note_container.appendChild(add_note);
+    add_note.classList.add('pointer');
+    add_note.innerHTML = '➕'; //'<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M20 29H6a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3zM6 11a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V12a1 1 0 0 0-1-1zM10 8a1 1 0 0 1-1-1V6a3 3 0 0 1 3-3h1a1 1 0 0 1 0 2h-1a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1zM26 23h-1a1 1 0 0 1 0-2h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1-3 3zM28 8a1 1 0 0 1-1-1V6a1 1 0 0 0-1-1h-1a1 1 0 0 1 0-2h1a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1zM28 16a1 1 0 0 1-1-1v-4a1 1 0 0 1 2 0v4a1 1 0 0 1-1 1zM21 5h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M16 20h-6a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M13 23a1 1 0 0 1-1-1v-6a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    add_note.addEventListener('click', () => this.add_note(undefined,false, 'Edit description to save'));
+  }
+
+  add_note= (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
+    if (description === undefined) description = '';
+    let note_id = id;
+    const row_index = this.notes_table.rows.length;
+    const row = this.notes_table.add_row(['activity-row']);
+    const check_cell = this.notes_table.add_cell(row_index, ['activity-cell']);
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    check_cell.appendChild(checkbox);
+    checkbox.checked = checked;
+    checkbox.addEventListener('change', () => {
+      const args = {'parameters': {'note_id': note_id, 'column': 'included', 'value': checkbox.checked}};
+      backend_communication.call_google_function('POST',
+          'update_place_note', args, (data) => {
+        if (data['status'] !== 'OK') console.log(data)
+      });
+    });
+    this.note_description_spans[note_id] = new HTMLText(description, ['activity-description'], (value, old_value) => {
+      if (note_id === undefined && old_value === 'Edit description to save') {
+        console.log('NEW and edited.')
+        const args = {'parameters': {'place_id': this.place.id, 'description': value, 'category': category_select.value, 'cost': Number(cost_span.innerHTML), 'included': checkbox.checked}};
+        backend_communication.call_google_function('POST',
+            'add_place_note', args, (data) => {
+          if (data['status'] === 'OK') {
+            note_id = data['note_id'];
+            checkbox.checked = true;
+            checkbox.dispatchEvent(new Event('change'));
+          } else {
+            console.log(data);
+          }
+        });
+      } else {
+        const args = {'parameters': {'note_id': note_id, 'column': 'description', 'value': value}};
+        console.log('EDITED NOTE.')
+        backend_communication.call_google_function('POST',
+            'update_place_note', args, (data) => {
+          if (data['status'] !== 'OK') console.log(data);
+        });
+      }
+      // console.log('updated activity:', value, old_value);
+    });
+    const description_cell = this.notes_table.add_cell(row_index, ['activity-description-cell']);
+    description_cell.appendChild(this.note_description_spans[note_id].span);
+    const category_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'category']);
+    if (emoji !== undefined && !Object.keys(note_icons).includes(category)) {
+      note_icons[category] = emoji;
+    }
+    const category_select = new HTMLSelect(Object.entries(note_icons).map((icon) => [icon[0], icon[1]]), ['activity-select'], (selected) => {
+      // console.log('Category changed! to ', selected);
+      const args = {'parameters': {'note_id': note_id, 'column': 'category', 'value': selected}};
+      backend_communication.call_google_function('POST',
+            'update_place_note', args, (data) => {
+        if (data['status'] !== 'OK') console.log(data);
+      });
+    }).select;
+    category_select.value = category;
+    category_cell.appendChild(category_select);
+    const cost_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'cost']);
+    const cost_span = new HTMLNumber([], (value) => {
+      const args = {'parameters': {'note_id': note_id, 'column': 'cost', 'value': value}};
+      backend_communication.call_google_function('POST',
+            'update_place_note', args, (data) => {
+        if (data['status'] !== 'OK') console.log(data);
+      });
+    }).span;
+    cost_span.innerHTML = cost;
+    cost_cell.appendChild(cost_span);
+    const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
+    const delete_icon = document.createElement('span');
+    delete_cell.appendChild(delete_icon);
+    delete_icon.classList.add('pointer');
+    delete_icon.addEventListener('click', () => {
+      if (confirm('Are you sure you want to delete this place note?')) {
+        const args = {'parameters': {'note_id': note_id}};
+        backend_communication.call_google_function('POST',
+              'remove_place_note', args, (data) => {
+          if (data['status'] === 'OK') {
+            this.notes_table.table.deleteRow(row.rowIndex);
+          } else {
+            console.log(data)
+          }
+        });
+      }
+    });
+    delete_icon.innerHTML = '🗑️';
   }
 }
 

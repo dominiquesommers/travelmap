@@ -43,7 +43,7 @@ class TravelApp {
 
     for (const [place_id, place_data] of Object.entries(data.places)) {
       const new_place = this.map_handler.add_place(place_id, place_data.name, this.map_handler.countries[place_data['country_id']],
-          place_data.coordinates, data.seasons[place_data['season_id']], place_data.costs, data['activities'][place_id]);
+          place_data.coordinates, data.seasons[place_data['season_id']], place_data.costs, data['activities'][place_id], data['place_notes'][place_id]);
     }
 
     for (const [route_id, route_data] of Object.entries(data.routes)) {

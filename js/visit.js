@@ -9,7 +9,7 @@ class Country {
 }
 
 class Place {
-  constructor(id, name, country, coordinates, season, costs, activities, map_handler) {
+  constructor(id, name, country, coordinates, season, costs, activities, notes, map_handler) {
     this.id = id;
     this.name = name;
     this.country = country;
@@ -19,6 +19,8 @@ class Place {
     this.costs = costs;
     this.activities = activities;
     this.activities_descriptions_loaded = false;
+    this.notes = notes;
+    this.notes_descriptions_loaded = false;
     this.visits = new Observable([]);
     this.map_handler = map_handler;
     this.marker = new PlaceMarker(this, map_handler);
@@ -40,13 +42,6 @@ class Place {
           console.log(data);
         }
       });
-      // backend_communication.fetch('/travel/add_visit/', args, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     callback(this.add_visit(data['visit_id'], nights, included));
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
     } else {
       // console.log(`add visit ${visit_id}`)
       const new_visit = new Visit(visit_id, this, nights, included);
@@ -73,21 +68,6 @@ class Place {
         console.log(data);
       }
     });
-    // backend_communication.fetch('/travel/remove_visit/', args, (data) => {
-    //   if (data['status'] === 'OK') {
-    //     const index = this.visits.value.indexOf(visit_to_remove);
-    //     this.visits.value = [...this.visits.value.slice(0, index), ...this.visits.value.slice(index + 1)];
-    //     Object.values(this.map_handler.places.value).forEach((place) => {
-    //       place.visits.value.forEach((visit) => {
-    //         const edges_to_remove = visit._outgoing_edges.value.filter((edge) => edge.destination === visit_to_remove);
-    //         edges_to_remove.forEach((edge) => visit.remove_outgoing_edge(edge, false));
-    //       });
-    //     });
-    //     callback();
-    //   } else {
-    //     console.log(data);
-    //   }
-    // });
   }
 
   get_activity_descriptions = () => {
@@ -107,6 +87,26 @@ class Place {
         this.overview.activity_description_spans[activity['id']].process();
       });
       this.activities_descriptions_loaded = true;
+    });
+  }
+
+  get_note_descriptions = () => {
+    console.log('get_place_note_descriptions');
+    if (this.notes_descriptions_loaded) {
+      return;
+    }
+    Object.values(this.overview.note_description_spans).forEach((html_span) => {
+      html_span.span.innerHTML = 'Loading...';
+      html_span.process();
+    });
+    backend_communication.call_google_function('GET',
+                'get_place_note_descriptions', {'place_id': this.id}, (data) => {
+      const place_notes = data['place_note_descriptions'];
+      place_notes.forEach((place_note) => {
+        this.overview.note_description_spans[place_note['id']].span.innerHTML = place_note['description'];
+        this.overview.note_description_spans[place_note['id']].process();
+      });
+      this.notes_descriptions_loaded = true;
     });
   }
 }

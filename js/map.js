@@ -223,7 +223,7 @@ class MapHandler {
     })
   }
 
-  add_place = (place_id, name, country, coordinates, season=undefined, costs=undefined, activities=[]) => {
+  add_place = (place_id, name, country, coordinates, season=undefined, costs=undefined, activities=[], place_notes=[]) => {
     if (place_id === undefined) {
       const args = { 'parameters': {'name': name, 'country': (country instanceof Country) ? country.name : country,
           'lat': coordinates.lat, 'lng': coordinates.lng , 'season_id': season?.id}};
@@ -240,21 +240,10 @@ class MapHandler {
           console.log(data);
         }
       });
-      // backend_communication.fetch('/travel/add_place/', args, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     if (!(country instanceof Country)) {
-      //       this.countries[data['country_id']] = new Country(data['country_id'], country, []);
-      //       country = this.countries[data['country_id']];
-      //     }
-      //     this.add_place(data['place_id'], name, country, coordinates, season);
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
     } else {
       const new_place = {};
       costs = (costs !== undefined) ? costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
-      new_place[place_id] = new Place(place_id, name, country, coordinates, season, costs, activities, this);
+      new_place[place_id] = new Place(place_id, name, country, coordinates, season, costs, activities, place_notes, this);
       this.places.value = {...this.places.value, ...new_place};
       return new_place[place_id];
     }

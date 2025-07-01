@@ -204,7 +204,12 @@ const activity_icons = {
   'Island & Water Activities': '🐬',
   // 'Art & Culture': '🎨',
   'Shopping & Dining': '🛍️',
-  undefined: '❓'
+  undefined: '▫️'
+}
+
+const note_icons = {
+  'visa': '🪪',
+  undefined: '▫️'
 }
 
 class HTMLSelect {
