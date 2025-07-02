@@ -1,10 +1,34 @@
 
 class Country {
-  constructor(id, name, seasons) {
+  constructor(id, name, seasons, notes, map_handler) {
     this.id = id;
     this.name = name;
     this.seasons = seasons;
-    this.flag = ''; // TODO
+    this.notes = (notes === undefined) ? [] : notes;
+    this.notes_descriptions_loaded = false;
+    this.map_handler = map_handler;
+    this.flag = country_flags[this.name]; // TODO
+    this.overview = new CountryOverview(this);
+  }
+
+  get_note_descriptions = () => {
+    console.log('get_country_note_descriptions');
+    if (this.notes_descriptions_loaded) {
+      return;
+    }
+    Object.values(this.overview.note_description_spans).forEach((html_span) => {
+      html_span.span.innerHTML = 'Loading...';
+      html_span.process();
+    });
+    backend_communication.call_google_function('GET',
+                'get_country_note_descriptions', {'country_id': this.id}, (data) => {
+      const country_notes = data['country_note_descriptions'];
+      country_notes.forEach((country_note) => {
+        this.overview.note_description_spans[country_note['id']].span.innerHTML = country_note['description'];
+        this.overview.note_description_spans[country_note['id']].process();
+      });
+      this.notes_descriptions_loaded = true;
+    });
   }
 }
 
@@ -17,9 +41,9 @@ class Place {
     this.season = (season !== undefined) ? season :
         { jan: 1, feb: 1, mar: 1, apr: 1, may: 1, jun: 1, jul: 1, aug: 1, sep: 1, oct: 1, nov: 1, dec: 1, description: 'default', description_abbreviation: 'D' };
     this.costs = costs;
-    this.activities = activities;
+    this.activities = (activities === undefined) ? [] : activities;
     this.activities_descriptions_loaded = false;
-    this.notes = notes;
+    this.notes = (notes === undefined) ? [] : notes;
     this.notes_descriptions_loaded = false;
     this.visits = new Observable([]);
     this.map_handler = map_handler;

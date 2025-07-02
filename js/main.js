@@ -38,7 +38,7 @@ class TravelApp {
 
     for (const [country_id, country_data] of Object.entries(data.countries)) {
       const country_seasons = Object.values(data.seasons).filter(season => (season.country === Number(country_id)));
-      this.map_handler.countries[country_id] = new Country(country_id, country_data['name'], country_seasons);
+      this.map_handler.countries[country_id] = new Country(country_id, country_data['name'], country_seasons, data['country_notes'][country_id], this.map_handler);
     }
 
     for (const [place_id, place_data] of Object.entries(data.places)) {

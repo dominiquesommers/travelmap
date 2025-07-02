@@ -12,6 +12,10 @@ class Overview {
     this.overview_div.appendChild(html);
   }
 
+  append_html = (html) => {
+    this.overview_div.appendChild(html);
+  }
+
   reset = () => this.set_html(this.html);
 
   create_elements = () => {
@@ -144,6 +148,7 @@ class Overview {
     const country_costs = {cross_country: {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0, nights: 0}};
     let rent_until_edge = undefined;
     let covered_places = new Set();
+    let covered_countries = new Set();
     let current_country = this.maphandler.graph.sorted_covered_visits[0].place.country.name;
     // console.log(current_country);
     this.maphandler.graph.sorted_covered_visits.forEach(visit => {
@@ -173,12 +178,22 @@ class Overview {
       country_costs[visit.place.country.name].miscellaneous += visit.nights.value * visit.place.costs.miscellaneous;
 
       if (!covered_places.has(visit.place)) {
+        covered_places.add(visit.place);
         visit.place.activities.forEach(activity => {
           if (activity.included) {
             country_costs[visit.place.country.name].activities += activity.cost;
           }
         });
         visit.place.notes.forEach(note => {
+          if (note.included) {
+            country_costs[visit.place.country.name].miscellaneous += note.cost;
+          }
+        });
+      }
+
+      if (!covered_countries.has(visit.place.country)) {
+        covered_countries.add(visit.country);
+        visit.place.country.notes.forEach(note => {
           if (note.included) {
             country_costs[visit.place.country.name].miscellaneous += note.cost;
           }
@@ -210,8 +225,6 @@ class Overview {
           country_costs[visit.place.country.name].transport += edge.route.cost.value;
         }
       }
-
-      covered_places.add(visit.place);
     });
     console.log(country_costs.cross_country)
     const cost_cats = ['accommodation', 'transport', 'food', 'activities', 'miscellaneous'];

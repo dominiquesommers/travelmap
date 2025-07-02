@@ -23,7 +23,7 @@ class PlaceOverview {
 
   create_elements = () => {
     this.html = document.createElement('div');
-    this.title = document.createElement('h2');
+    this.title = document.createElement('h1');
     this.title.style = 'white-space: initial;'
     this.html.appendChild(this.title);
     const place_name = new HTMLText(`${this.place.name}`, [], (value) => {
@@ -37,10 +37,11 @@ class PlaceOverview {
       //   if (data['status'] !== 'OK') console.log(data);
       // });
     }, 'span', true).span;
+    place_name.style = 'padding: 0px';
     this.title.appendChild(place_name);
-    const country_span = document.createElement('span');
-    this.title.appendChild(country_span);
-    country_span.innerHTML = `, ${this.place.country.name} ${country_flags[this.place.country.name]}`;
+    // const country_span = document.createElement('span');
+    // this.title.appendChild(country_span);
+    // country_span.innerHTML = `, ${this.place.country.name} ${country_flags[this.place.country.name]}`;
 
     const divider = document.createElement('span');
     divider.innerHTML = '<hr>';
@@ -416,7 +417,7 @@ class PlaceOverview {
     this.notes_div.appendChild(notes_title);
     const title = document.createElement('span');
     notes_title.appendChild(title);
-    title.innerHTML = 'Notes:'
+    title.innerHTML = 'Place notes:'
 
     const notes_container = document.createElement('div');
     this.note_description_spans = {};

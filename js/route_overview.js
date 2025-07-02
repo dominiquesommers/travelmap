@@ -14,9 +14,6 @@ class RouteOverview {
     this.title.innerHTML += `<br>&nbsp;&nbsp;${transport_icons[this.route.route_type.value]}&#8600;<br>&nbsp;&nbsp;&nbsp;&nbsp;`;
     this.title.innerHTML += `${this.route.destination.name}, ${this.route.destination.country.name} ${country_flags[this.route.destination.country.name]}`
 
-    // <span style='font-size:100px;'>&#8600;</span>
-    // country_span.innerHTML = `, ${this.place.country.name} ${country_flags[this.place.country.name]}`;
-
     const divider = document.createElement('span');
     divider.innerHTML = '<hr>';
     this.html.appendChild(divider);
@@ -38,7 +35,7 @@ class RouteOverview {
     this.notes_div.appendChild(notes_title);
     const title = document.createElement('span');
     notes_title.appendChild(title);
-    title.innerHTML = 'Notes:'
+    title.innerHTML = 'Route notes:'
 
     const notes_container = document.createElement('div');
     this.note_description_spans = {};

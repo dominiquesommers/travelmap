@@ -232,7 +232,7 @@ class MapHandler {
         console.log(data);
         if (data['status'] === 'OK') {
           if (!(country instanceof Country)) {
-            this.countries[data['country_id']] = new Country(data['country_id'], country, []);
+            this.countries[data['country_id']] = new Country(data['country_id'], country, [], [], this);
             country = this.countries[data['country_id']];
           }
           this.add_place(data['place_id'], name, country, coordinates, season);
@@ -243,6 +243,7 @@ class MapHandler {
     } else {
       const new_place = {};
       costs = (costs !== undefined) ? costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
+      console.log()
       new_place[place_id] = new Place(place_id, name, country, coordinates, season, costs, activities, place_notes, this);
       this.places.value = {...this.places.value, ...new_place};
       return new_place[place_id];
