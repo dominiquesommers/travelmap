@@ -133,7 +133,7 @@ class RoutePopup {
 
 
 class Route {
-  constructor(id, source, destination, route_type, distance=0, duration=0, cost=0, nights=0, route, map_handler) {
+  constructor(id, source, destination, route_type, distance=0, duration=0, cost=0, nights=0, route, route_notes, map_handler) {
     this.id = id;
     this.source = source;
     this.destination = destination;
@@ -157,6 +157,8 @@ class Route {
     this.route_source_id = `route_source:${this.get_id()}`;
     this.route_layer_id = `route:${this.get_id()}`;
     this.route_arrow_layer_id = `route_arrow:${this.get_id()}`;
+    this.notes = route_notes;
+    this.notes_descriptions_loaded = false;
     this.map_handler = map_handler;
 
     this.route_popup = new RoutePopup(this);
@@ -164,6 +166,7 @@ class Route {
     this.overview = new RouteOverview(this);
     this.popup.on('open', () => {
       this.map_handler.overview.set_html(this.overview.html);
+      this.get_note_descriptions();
     });
     this.popup.on('close', () => {
       this.map_handler.overview.reset();
@@ -392,6 +395,26 @@ class Route {
       update_route_source();
     }
   };
+
+  get_note_descriptions = () => {
+    console.log('get_route_note_descriptions');
+    if (this.notes_descriptions_loaded) {
+      return;
+    }
+    Object.values(this.overview.note_description_spans).forEach((html_span) => {
+      html_span.span.innerHTML = 'Loading...';
+      html_span.process();
+    });
+    backend_communication.call_google_function('GET',
+                'get_route_note_descriptions', {'route_id': this.id}, (data) => {
+      const route_notes = data['route_note_descriptions'];
+      route_notes.forEach((route_note) => {
+        this.overview.note_description_spans[route_note['id']].span.innerHTML = route_note['description'];
+        this.overview.note_description_spans[route_note['id']].process();
+      });
+      this.notes_descriptions_loaded = true;
+    });
+  }
 
   get_line_parameters = () => {
     // const paint = (this.route_type.value === undefined) ? {'line-dasharray': [1, 3]} : {};

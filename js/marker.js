@@ -361,7 +361,7 @@ class VisitPopup {
 
           this.visit.place.map_handler.add_route(undefined, this.visit.place.id, new_destination.place.id, undefined, 0, 0, 0, 0,
               [[this.visit.place.coordinates.lat, this.visit.place.coordinates.lng], [new_destination.place.coordinates.lat, new_destination.place.coordinates.lng]],
-              (new_route) => {
+              [], (new_route) => {
             if (new_route !== undefined) {
               const new_edge = this.visit.add_outgoing_edge(new_destination, new_route, undefined, undefined, undefined, true);
                   // new Edge(this.visit, new_destination, new_route));

@@ -47,7 +47,8 @@ class TravelApp {
     }
 
     for (const [route_id, route_data] of Object.entries(data.routes)) {
-      const route = this.map_handler.add_route(route_id, route_data.source, route_data.destination, route_data.type, route_data.distance, route_data.duration, route_data.cost, route_data.nights, route_data.route);
+      const route = this.map_handler.add_route(route_id, route_data.source, route_data.destination, route_data.type,
+          route_data.distance, route_data.duration, route_data.cost, route_data.nights, route_data.route, data['route_notes'][route_id]);
     }
 
     const visits = {};

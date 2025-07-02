@@ -287,7 +287,7 @@ class MapHandler {
   }
 
   add_route = (route_id, source_id, destination_id, route_type=undefined, distance=0, duration=0,
-               cost=0, nights=0, route=undefined, callback=(new_route) => {}) => {
+               cost=0, nights=0, route=undefined, route_notes=[], callback=(new_route) => {}) => {
     if (route_id === undefined) {
       const args = { 'parameters': {'source_id': source_id, 'destination_id': destination_id, 'route_type': route_type,
                                                      'distance': distance, 'duration': duration, 'cost': cost, 'nights': nights, 'route': route} };
@@ -309,7 +309,7 @@ class MapHandler {
       //   }
       // });
     } else {
-      const new_route = new Route(route_id, this.places.value[source_id], this.places.value[destination_id], route_type, distance, duration, cost, nights, route, this);
+      const new_route = new Route(route_id, this.places.value[source_id], this.places.value[destination_id], route_type, distance, duration, cost, nights, route, route_notes, this);
       const routes = {};
       routes[route_id] = new_route;
       this.routes.value = {...this.routes.value, ...routes};
