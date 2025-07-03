@@ -1,25 +1,9 @@
 class CountryOverview {
   constructor(country) {
     this.country = country;
-    // this.place.visits.subscribe(this.visits_changed);
+    this.country.visits.subscribe(this.add_visits);
     this.create_elements();
   };
-
-  // visits_changed = (new_visits, old_visits) => {
-  //   new_visits.forEach((visit) => {
-  //     if (!old_visits.includes(visit)) {
-  //       visit.entry_date.subscribe(this.add_visits);
-  //       visit.exit_date.subscribe(this.add_visits);
-  //     }
-  //   });
-  //   old_visits.forEach((visit) => {
-  //     if (!new_visits.includes(visit)) {
-  //       visit.entry_date.subscribe(this.add_visits);
-  //       visit.exit_date.subscribe(this.add_visits);
-  //     }
-  //   });
-  //   this.add_visits();
-  // }
 
   create_elements = () => {
     this.html = document.createElement('div');
@@ -32,6 +16,13 @@ class CountryOverview {
     divider.innerHTML = '<hr>';
     this.html.appendChild(divider);
 
+    this.visits_div = document.createElement('div');
+    this.html.appendChild(this.visits_div);
+
+    const divider2 = document.createElement('span');
+    divider2.innerHTML = '<hr>';
+    this.html.appendChild(divider2);
+
     this.notes_div = document.createElement('div');
     this.html.appendChild(this.notes_div);
     this.add_notes();
@@ -41,6 +32,31 @@ class CountryOverview {
       divider3.innerHTML = '<hr>';
       this.html.appendChild(divider3);
     });
+  }
+
+  add_visits = () => {
+    this.visits_div.innerHTML = '';
+    const visit_title = document.createElement('h3');
+    this.visits_div.appendChild(visit_title);
+    const title = document.createElement('span');
+    visit_title.appendChild(title);
+    title.innerHTML = (this.country.visits.value.length === 0) ? 'Not visiting with the current planning.' : 'Visiting for ';
+
+    const visit_info_div = document.createElement('div');
+    this.visits_div.appendChild(visit_info_div);
+    add_collapsible(title, visit_info_div, '10vh');
+
+    const visit_span = document.createElement('span')
+    visit_info_div.appendChild(visit_span);
+    let total_visit_days = 0;
+    if (this.country.visits.value.length > 0) {
+      this.country.visits.value.sort((a, b) => a[0] - b[0]).forEach((visit) => {
+        const days = ((visit[1] - visit[0]) / (24 * 60 * 60 * 1000)) + 1;
+        visit_span.innerHTML += `${visit[0].toDateString()} - ${visit[1].toDateString()} (${days} day${days !== 1 ? 's' : ''})<br>`;
+        total_visit_days += days;
+      });
+      title.innerHTML += `${total_visit_days} day${total_visit_days !== 1 ? 's' : ''} on:`;
+    }
   }
 
   add_notes = () => {

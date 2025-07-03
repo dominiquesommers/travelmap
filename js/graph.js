@@ -56,7 +56,6 @@ class Graph {
         visit.exit_date.value = undefined;
         visit._outgoing_edges.value.forEach((edge) => {
             edge.route.set_disabled();
-            console.log(edge.route);
             edge.route.traverses.value = [];
         });
       });
@@ -121,12 +120,14 @@ class Graph {
 
   update_dates = () => {
     Object.values(this.map_handler.places.value).forEach((place) => {
+      place.country.visits.value = [];
       place.visits.value.forEach((visit) => {
         visit.entry_date.value = undefined;
         visit.exit_date.value = undefined;
       });
     });
 
+    let current_country = undefined;
     let current_date = new Date(`${this.map_handler.overview.start_date.value}T00:00:00.000+00:00`);
     current_date = (isNaN(current_date)) ? new Date(this.map_handler.overview.start_date.value) : current_date;
     let previous_visit = undefined;
@@ -136,6 +137,14 @@ class Graph {
       visit.entry_date.value = new Date(current_date);
       current_date.setDate(current_date.getDate() + visit.nights.value);
       visit.exit_date.value = new Date(current_date);
+      if (visit.place.country !== current_country) {
+        current_country = visit.place.country;
+        visit.place.country.visits.value = [...visit.place.country.visits.value, [visit.entry_date.value, visit.exit_date.value]];
+      } else {
+        const updated_exit = visit.place.country.visits.value[visit.place.country.visits.value.length - 1];
+        updated_exit[1] = visit.exit_date.value;
+        visit.place.country.visits.value = [...visit.place.country.visits.value.slice(0, -1), updated_exit];
+      }
       if (visit.next_edge.value !== undefined) {
         visit.next_edge.value.route.traverses.value = [...visit.next_edge.value.route.traverses.value, current_date];
       }

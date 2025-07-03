@@ -41,10 +41,6 @@ class RouteOverview {
 
   add_traverses = () => {
     this.traverses_div.innerHTML = '';
-    // const visiting_visits = filter((visit) => visit.entry_date.value !== undefined);
-    // const nr_excluded_visits = this.place.visits.value.filter((visit) => !visit.included.value).length;
-    // const nr_uncovered_visits = this.place.visits.value.filter((visit) => visit.included.value && visit.entry_date.value === undefined).length;
-
     const traverse_title = document.createElement('h3');
     this.traverses_div.appendChild(traverse_title);
     const title = document.createElement('span');
@@ -62,8 +58,6 @@ class RouteOverview {
         traverse_span.innerHTML += `${traverse.toDateString()}<br>`
       });
     }
-    // traverse_span.innerHTML += `${nr_excluded_visits} visits excluded, ${nr_uncovered_visits} visits not covered.`
-    // this.add_season_table();
   }
 
   add_notes = () => {

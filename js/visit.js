@@ -6,6 +6,7 @@ class Country {
     this.seasons = seasons;
     this.notes = (notes === undefined) ? [] : notes;
     this.notes_descriptions_loaded = false;
+    this.visits = new Observable([]);
     this.map_handler = map_handler;
     this.flag = country_flags[this.name]; // TODO
     this.overview = new CountryOverview(this);
