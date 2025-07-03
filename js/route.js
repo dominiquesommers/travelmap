@@ -154,6 +154,7 @@ class Route {
       this.route_spline = this.compute_route_spline(this.route.value);
     }));
     this.enabled = false;
+    this.traverses = new Observable([], this.check_same)
     this.route_source_id = `route_source:${this.get_id()}`;
     this.route_layer_id = `route:${this.get_id()}`;
     this.route_arrow_layer_id = `route_arrow:${this.get_id()}`;

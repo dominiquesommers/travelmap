@@ -56,9 +56,13 @@ class Graph {
         visit.exit_date.value = undefined;
         visit._outgoing_edges.value.forEach((edge) => {
             edge.route.set_disabled();
+            console.log(edge.route);
+            edge.route.traverses.value = [];
         });
       });
     });
+
+    // route.traverses.value = [...route.traverses.value, date];
 
     source_visit.previous_edge.value = undefined;
     var current_visit = source_visit;
@@ -103,6 +107,7 @@ class Graph {
           visit._outgoing_edges.value.forEach((edge) => {
             if (!covered_routes.has(edge.route)) {
               edge.route.set_disabled();
+              edge.route.traverses.value = [];
             }
           });
         }
@@ -131,6 +136,9 @@ class Graph {
       visit.entry_date.value = new Date(current_date);
       current_date.setDate(current_date.getDate() + visit.nights.value);
       visit.exit_date.value = new Date(current_date);
+      if (visit.next_edge.value !== undefined) {
+        visit.next_edge.value.route.traverses.value = [...visit.next_edge.value.route.traverses.value, current_date];
+      }
       previous_visit = visit;
     });
     this.map_handler.overview.update_route(this.sorted_covered_visits[0]);
@@ -221,6 +229,7 @@ class Graph {
     });
     console.log(total_cost);
     console.log(total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities);
+    console.log(`Nr of routes without specified cost: ${routes_to_do.length}`)
     routes_to_do.forEach((route, index) => {
       console.log(`${index}: (${route.route_type.value}) ${route.source.name}, ${route.source.country.name} -> ${route.destination.name}, ${route.destination.country.name}`)
     });

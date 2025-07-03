@@ -1,8 +1,13 @@
 class RouteOverview {
   constructor(route) {
     this.route = route;
+    this.route.traverses.subscribe(this.add_traverses);
     this.create_elements();
   };
+
+  traverses_changed = () => {
+    console.log(this.route.get_id(), this.route.traverses.value);
+  }
 
   create_elements = () => {
     this.html = document.createElement('div');
@@ -18,7 +23,12 @@ class RouteOverview {
     divider.innerHTML = '<hr>';
     this.html.appendChild(divider);
 
-    // TODO 'visits'
+    this.traverses_div = document.createElement('div');
+    this.html.appendChild(this.traverses_div);
+
+    const divider2 = document.createElement('span');
+    divider2.innerHTML = '<hr>';
+    this.html.appendChild(divider2);
 
     this.notes_div = document.createElement('div');
     this.html.appendChild(this.notes_div);
@@ -29,6 +39,32 @@ class RouteOverview {
     this.html.appendChild(divider5)
   }
 
+  add_traverses = () => {
+    this.traverses_div.innerHTML = '';
+    // const visiting_visits = filter((visit) => visit.entry_date.value !== undefined);
+    // const nr_excluded_visits = this.place.visits.value.filter((visit) => !visit.included.value).length;
+    // const nr_uncovered_visits = this.place.visits.value.filter((visit) => visit.included.value && visit.entry_date.value === undefined).length;
+
+    const traverse_title = document.createElement('h3');
+    this.traverses_div.appendChild(traverse_title);
+    const title = document.createElement('span');
+    traverse_title.appendChild(title);
+    title.innerHTML = (this.route.traverses.value.length === 0) ? 'Not traversing with the current planning.' : 'Traversing on:';
+
+    const traverse_info_div = document.createElement('div');
+    this.traverses_div.appendChild(traverse_info_div);
+    add_collapsible(title, traverse_info_div, '10vh');
+
+    const traverse_span = document.createElement('span')
+    traverse_info_div.appendChild(traverse_span);
+    if (this.route.traverses.value.length > 0) {
+      this.route.traverses.value.sort().forEach((traverse) => {
+        traverse_span.innerHTML += `${traverse.toDateString()}<br>`
+      });
+    }
+    // traverse_span.innerHTML += `${nr_excluded_visits} visits excluded, ${nr_uncovered_visits} visits not covered.`
+    // this.add_season_table();
+  }
 
   add_notes = () => {
     const notes_title = document.createElement('h3');

@@ -192,7 +192,7 @@ class Overview {
       }
 
       if (!covered_countries.has(visit.place.country)) {
-        covered_countries.add(visit.country);
+        covered_countries.add(visit.place.country);
         visit.place.country.notes.forEach(note => {
           if (note.included) {
             country_costs[visit.place.country.name].miscellaneous += note.cost;
