@@ -5,9 +5,10 @@
 
 class TravelApp {
   constructor(access_token) {
-    this.access_token = access_token;
-    this.backend_comm = new Communication();
-    this.map_handler = new MapHandler('map', access_token, this.map_loaded);
+    const url_parameters = new URLSearchParams(window.location.search);
+    const view_only = url_parameters.get('mode') !== 'edit';
+
+    this.map_handler = new MapHandler('map', access_token, this.map_loaded, view_only);
   }
 
   map_loaded = () => {

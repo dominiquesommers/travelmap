@@ -93,7 +93,10 @@ class RouteOverview {
     add_note_container.appendChild(add_note);
     add_note.classList.add('pointer');
     add_note.innerHTML = '➕';
-    add_note.addEventListener('click', () => this.add_note(undefined, 'Edit description to save'));
+    add_note.addEventListener('click', () => {
+      if (this.route.map_handler.view_only) { return; }
+      this.add_note(undefined, 'Edit description to save')
+    });
   }
 
   add_note= (id=undefined, description='') => {
@@ -123,7 +126,7 @@ class RouteOverview {
         });
       }
       // console.log('updated activity:', value, old_value);
-    });
+    }, 'p', false, this.route.map_handler.view_only);
     const description_cell = this.notes_table.add_cell(row_index, ['activity-description-cell']);
     description_cell.appendChild(this.note_description_spans[note_id].span);
 
@@ -132,6 +135,7 @@ class RouteOverview {
     delete_cell.appendChild(delete_icon);
     delete_icon.classList.add('pointer');
     delete_icon.addEventListener('click', () => {
+      if (this.route.map_handler.view_only) { return; }
       if (confirm('Are you sure you want to delete this route note?')) {
         const args = {'parameters': {'note_id': note_id}};
         backend_communication.call_google_function('POST',

@@ -136,7 +136,7 @@ class VisitPopup {
       //     console.log(data);
       //   }
       // });
-    }).select;
+    }, this.visit.place.map_handler.view_only).select;
     rent_until_select.options[0].disabled = true;
 
     if (until_visit !== undefined && Array.from(rent_until_select.options).some((option) => option.value === until_visit.id)) {
@@ -165,6 +165,9 @@ class VisitPopup {
     const includes_acco_span = document.createElement('span');
     includes_acco_span.innerHTML = '<br>Includes accomm.:'
     const checkbox = document.createElement('input');
+    if (this.visit.place.map_handler.view_only) {
+      checkbox.disabled = true;
+    }
     checkbox.type = 'checkbox';
     checkbox.checked = this.visit.next_edge.value.includes_accommodation;
     includes_acco_span.appendChild(checkbox);
@@ -434,7 +437,10 @@ class VisitPopup {
     cell6.appendChild(gps)
     gps.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="34" height="34" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M256 0C153.755 0 70.573 83.182 70.573 185.426c0 126.888 165.939 313.167 173.004 321.035 6.636 7.391 18.222 7.378 24.846 0 7.065-7.868 173.004-194.147 173.004-321.035C441.425 83.182 358.244 0 256 0zm0 278.719c-51.442 0-93.292-41.851-93.292-93.293S204.559 92.134 256 92.134s93.291 41.851 93.291 93.293-41.85 93.292-93.291 93.292z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     gps.classList.add('edit');
-    gps.addEventListener('click', (event) => { this.visit.included.value = !this.visit.included.value; });
+    gps.addEventListener('click', (event) => {
+      if (this.visit.map_handler.view_only) { return; }
+      this.visit.included.value = !this.visit.included.value;
+    });
     const current_visit_cell = table_constructor.add_cell(2, ['current-visit']);
     const current_visit_name_span = document.createElement('span');
     current_visit_cell.appendChild(current_visit_name_span);
@@ -443,19 +449,26 @@ class VisitPopup {
     current_visit_cell.appendChild(this.decrement_nights);
     this.decrement_nights.innerHTML = '<sup>-</sup>';
     this.decrement_nights.classList.add('minus');
-    this.decrement_nights.addEventListener('click', (event) => { this.visit.nights.value -= 1; });
+    this.decrement_nights.addEventListener('click', (event) => {
+      if (this.visit.map_handler.view_only) { return; }
+      this.visit.nights.value -= 1;
+    });
     current_visit_cell.appendChild(this.night_span);
     const increment_nights = document.createElement('span');
     current_visit_cell.appendChild(increment_nights);
     increment_nights.innerHTML = '<sup>+</sup>';
     increment_nights.classList.add('plus');
-    increment_nights.addEventListener('click', (event) => { this.visit.nights.value += 1; });
+    increment_nights.addEventListener('click', (event) => {
+      if (this.visit.map_handler.view_only) { return; }
+      this.visit.nights.value += 1;
+    });
 
     const delete_span = document.createElement('span');
     current_visit_cell.appendChild(delete_span);
     delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     delete_span.classList.add('pointer');
     delete_span.addEventListener('click', (event) => {
+      if (this.visit.map_handler.view_only) { return; }
       if (confirm('Are you sure you want to delete this visit?')) {
         console.log('delete visit.');
         this.visit.place.marker.popup.remove();
@@ -483,16 +496,8 @@ class VisitPopup {
     this.update_exit_date(this.visit.exit_date.value);
     this.exit_date_span.classList.add('current-dates');
 
-    // TODO add dates.
-    // const dates_span = <br><span class="current-dates"><span>Sat 25-03-\'25</span><span> - </span><span>Tue 28-03-\'25</span>
-
-
-    // cell7.innerHTML = '<span>Machu Pichu</span><span class="minus" onclick="document.getElementById(\'xxx\').innerHTML = parseInt(document.getElementById(\'xxx\').innerHTML) - 1;"><sup>-</sup></span><span id="xxx">3</span><span class="plus" onclick="document.getElementById(\'xxx\').innerHTML = parseInt(document.getElementById(\'xxx\').innerHTML) + 1;"><sup>+</sup></span><br><span class="current-dates"><span>Sat 25-03-\'25</span><span> - </span><span>Tue 28-03-\'25</span></span>';
-
     const cell8 = table_constructor.add_cell(3, ['transport']);
     cell8.appendChild(this.next_edge_type);
-    // cell8.innerHTML = icons[this.visit.next_edge.value?.route.route_type];
-    // cell8.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="18" height="18" x="0" y="0" viewBox="0 0 64 64" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M52.593 19.312a11.873 11.873 0 0 0 3.358-6.611 4.032 4.032 0 0 0-1.146-3.508 4.034 4.034 0 0 0-3.506-1.144 11.875 11.875 0 0 0-6.611 3.357l-5.579 5.579-3.34-.727a2.235 2.235 0 0 0-.285-2.804 2.233 2.233 0 0 0-3.153 0l-1.687 1.687-3.958-.862.276-.276a2.232 2.232 0 0 0 0-3.152c-.839-.842-2.308-.843-3.152 0l-2.3 2.3-8.192-1.784a1.928 1.928 0 0 0-1.778.522l-1.649 1.649c-.433.433-.633 1.03-.547 1.637s.443 1.125.98 1.422l19.239 10.628-9.739 10.656-9.891.526-1.532 1.531a1.366 1.366 0 0 0 .48 2.243l9.363 3.576 3.577 9.364A1.362 1.362 0 0 0 23.1 56c.358 0 .704-.141.965-.401l1.53-1.53.526-9.892 10.656-9.739L47.398 53.67c.296.537.814.894 1.421.98a1.923 1.923 0 0 0 1.637-.547l1.65-1.649a1.925 1.925 0 0 0 .522-1.777l-1.781-8.184 2.303-2.302c.421-.421.653-.981.653-1.577s-.232-1.156-.653-1.577a2.233 2.233 0 0 0-3.153 0l-.277.277-.861-3.958 1.688-1.688c.421-.421.653-.981.653-1.577s-.232-1.156-.652-1.576c-.735-.735-1.948-.828-2.804-.281l-.728-3.345 5.579-5.579z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     const cell9 = table_constructor.add_cell(3, ['leftie']);
     cell9.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 16 16" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M9.414.586a2 2 0 1 1-2.828 2.828A2 2 0 0 1 9.414.586M9.414 6.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828M9.414 12.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     const cell10 = table_constructor.add_cell(3, ['route-details']);
@@ -519,7 +524,7 @@ class VisitPopup {
     edit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12" x="0" y="0" viewBox="0 0 492.493 492" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M304.14 82.473 33.165 353.469a10.799 10.799 0 0 0-2.816 4.949L.313 478.973a10.716 10.716 0 0 0 2.816 10.136 10.675 10.675 0 0 0 7.527 3.114 10.6 10.6 0 0 0 2.582-.32l120.555-30.04a10.655 10.655 0 0 0 4.95-2.812l271-270.977zM476.875 45.523 446.711 15.36c-20.16-20.16-55.297-20.14-75.434 0l-36.949 36.95 105.598 105.597 36.949-36.949c10.07-10.066 15.617-23.465 15.617-37.715s-5.547-27.648-15.617-37.719zm0 0" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     edit.classList.add('edit');
 
-    this.sortable_list = new SortableHTMLList(edit, this.visit.change_order_outgoing_edges);
+    this.sortable_list = new SortableHTMLList(edit, this.visit.change_order_outgoing_edges, this.visit.place.map_handler.view_only);
     next_edge_div.appendChild(this.sortable_list.container);
     this.update_outgoing_edges(this.visit._outgoing_edges.value);
     const add_edge_div = document.createElement('div');
@@ -605,7 +610,11 @@ class PlaceMarker {
       if (index === 0) cell.classList.add('left-cell');
     });
     this.plus_cell = this.pill.add_cell(0,['number']);
-    this.plus_cell.addEventListener('click', this.set_popup);
+    this.plus_cell.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (this.map_handler.view_only) { return; }
+      this.set_popup;
+    });
     this.plus_cell.classList.add('right-cell');
     this.plus_cell.innerHTML = '+';
     this.add_visit_clicked = false;

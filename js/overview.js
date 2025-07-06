@@ -35,6 +35,9 @@ class Overview {
     date_span2.for = 'start_date';
     date_span2.innerHTML = 'from: ';
     this.start_date = document.createElement("input");
+    if (this.maphandler.view_only) {
+      this.start_date.disabled = true;
+    }
     this.start_date.style = 'width: 105px;'
     this.dates.appendChild(this.start_date);
     this.start_date.type = 'date';

@@ -29,7 +29,7 @@ class SVGHandler {
 }
 
 class HTMLNumber {
-  constructor(css_classes=[], change_callback=(value)=>{}) {
+  constructor(css_classes=[], change_callback=(value)=>{}, view_only=false) {
     this.span = document.createElement('span');
     // this.span.contentEditable = true;
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
@@ -44,6 +44,7 @@ class HTMLNumber {
 
     this.span.addEventListener('dblclick', (event) => {
       event.preventDefault();
+      if (view_only) { return; }
       this.span.contentEditable = true;
       this.span.focus();
     });
@@ -70,7 +71,7 @@ class HTMLNumber {
 }
 
 class HTMLText {
-  constructor(inner='', css_classes=[], change_callback=()=>{}, sp='p', enter_enter=false) {
+  constructor(inner='', css_classes=[], change_callback=()=>{}, sp='p', enter_enter=false, view_only=false) {
     this.span = document.createElement(sp);
     this.span.contentEditable = false;
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
@@ -88,6 +89,7 @@ class HTMLText {
 
     this.span.addEventListener('dblclick', (event) => {
       event.preventDefault();
+      if (view_only) { return; }
       this.span.contentEditable = true;
       console.log(document.activeElement, this.value);
       if (document.activeElement !== this.span) {
@@ -213,8 +215,11 @@ const note_icons = {
 }
 
 class HTMLSelect {
-  constructor(options=[], css_classes=[], change_callback=(selected) => {}) {
+  constructor(options=[], css_classes=[], change_callback=(selected) => {}, view_only=false) {
     this.select = document.createElement('select');
+    if (view_only) {
+      this.select.disabled = true;
+    }
     css_classes?.forEach(css_class => this.select.classList.add(css_class));
     this.options = [];
     options.forEach((option) => {
@@ -232,7 +237,7 @@ class HTMLSelect {
 
 
 class HTMLTable {
-  constructor(css_classes=[]) {
+  constructor(css_classes=[], view_only=false) {
     this.table = document.createElement('table');
     this.table_header = document.createElement('thead');
     this.table.appendChild(this.table_header);
@@ -292,7 +297,7 @@ class HTMLTable {
 
 
 class SortableHTMLList {
-  constructor(edit, callback=(elements, prev_elements, dragged_element) => {}) {
+  constructor(edit, callback=(elements, prev_elements, dragged_element) => {}, view_only=false) {
     this.container = document.createElement('div');
     this.container.classList.add('select-options');
 
@@ -303,7 +308,10 @@ class SortableHTMLList {
     this.options = [];
 
     this.dragged_item = null;
-    edit.addEventListener('click', (event) => this.container.classList.toggle('show'));
+    edit.addEventListener('click', (event) => {
+      if (view_only) { return; }
+      this.container.classList.toggle('show')
+    });
     this.callback = callback;
 
     document.addEventListener('click', (event) => {

@@ -47,13 +47,14 @@ class RoutePopup {
     this.destination.addEventListener('click', () =>
       this.route.map_handler.map.flyTo({center: [this.route.destination.coordinates.lat, this.route.destination.coordinates.lng]}));
 
-    this.route_type = new HTMLSelect(['flying', 'train', 'bus', 'driving', 'boat', undefined].map(t => [t, transport_icons[t]]), ['transport-select'], this.type_changed).select;
+    this.route_type = new HTMLSelect(['flying', 'train', 'bus', 'driving', 'boat', undefined].map(t => [t, transport_icons[t]]),
+        ['transport-select'], this.type_changed, this.route.map_handler.view_only).select;
     this.route_type.value = this.route.route_type.value;
 
-    this.duration = new HTMLNumber([], () => {this.route.duration.value = Number(this.duration.innerHTML);}).span;
+    this.duration = new HTMLNumber([], () => {this.route.duration.value = Number(this.duration.innerHTML);}, this.route.map_handler.view_only).span;
     this.route.duration.subscribe((new_value, old_value) => { this.duration.innerHTML = Math.round(new_value);} );
-    this.cost = new HTMLNumber([], () => {this.route.cost.value = Number(this.cost.innerHTML);}).span;
-    this.nights = new HTMLNumber([], () => {this.route.nights.value = Number(this.nights.innerHTML);}).span;
+    this.cost = new HTMLNumber([], () => {this.route.cost.value = Number(this.cost.innerHTML);}, this.route.map_handler.view_only).span;
+    this.nights = new HTMLNumber([], () => {this.route.nights.value = Number(this.nights.innerHTML);}, this.route.map_handler.view_only).span;
   }
 
   duration_changed = () => {

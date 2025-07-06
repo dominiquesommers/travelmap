@@ -1,7 +1,8 @@
 class MapHandler {
-  constructor(container, access_token, loaded_callback=() => {}) {
+  constructor(container, access_token, loaded_callback=() => {}, view_only=true) {
     mapboxgl.accessToken = access_token;
     this.container = container;
+    this.view_only = view_only;
     this.overview = new Overview(this);
     this.loaded_callback = loaded_callback;
     this.initialize_map();
@@ -167,19 +168,22 @@ class MapHandler {
     searchBox.addEventListener('retrieve', this.search_callback);
     const x = document.getElementsByClassName('mapboxgl-ctrl-top-left')[0];
     x.style.width = '400px';
-    this.custom_search_button = document.createElement('button');
-    x.appendChild(this.custom_search_button);
-    this.custom_search_button.classList.add('custom-search');
-    this.custom_search_button.innerHTML = 'custom'
-    this.custom_search_button.addEventListener('click', (e) => {
-      if (this.custom_search_button.innerHTML === 'custom') {
-        this.custom_search_button.innerHTML = 'cancel';
-        this.map.getCanvas().style.cursor = 'pointer';
-      } else {
-        this.custom_search_button.innerHTML = 'custom';
-        this.map.getCanvas().style.cursor = '';
-      }
-    });
+    if (!this.view_only) {
+      this.custom_search_button = document.createElement('button');
+      x.appendChild(this.custom_search_button);
+      this.custom_search_button.classList.add('custom-search');
+      this.custom_search_button.innerHTML = 'custom'
+      this.custom_search_button.addEventListener('click', (e) => {
+        if (this.custom_search_button.innerHTML === 'custom') {
+          this.custom_search_button.innerHTML = 'cancel';
+          this.map.getCanvas().style.cursor = 'pointer';
+        } else {
+          this.custom_search_button.innerHTML = 'custom';
+          this.map.getCanvas().style.cursor = '';
+        }
+      });
+    }
+
     this.blub = document.createElement('button');
     document.getElementById('container').appendChild(this.blub);
     this.blub.classList.add('hide');
@@ -207,6 +211,7 @@ class MapHandler {
     const season = selection_country?.seasons[0];
     const place_id = `${selection_name},${selection_country_name}`;
     if (!Object.values(this.places.value).some(place => place.get_id() === place_id)) {
+      if (this.view_only) { return; }
       this.add_place(undefined, selection_name, (selection_country === undefined) ? selection_country_name : selection_country,
           {  'lat': selection_coords[0], 'lng': selection_coords[1] }, season);
     }

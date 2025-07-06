@@ -95,7 +95,10 @@ class CountryOverview {
     add_note_container.appendChild(add_note);
     add_note.classList.add('pointer');
     add_note.innerHTML = '➕';
-    add_note.addEventListener('click', () => this.add_note(undefined,false, 'Edit description to save'));
+    add_note.addEventListener('click', () => {
+      if (this.country.map_handler.view_only) { return; }
+      this.add_note(undefined,false, 'Edit description to save')
+    });
   }
 
   add_note= (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
@@ -105,6 +108,9 @@ class CountryOverview {
     const row = this.notes_table.add_row(['activity-row']);
     const check_cell = this.notes_table.add_cell(row_index, ['activity-cell']);
     const checkbox = document.createElement('input');
+    if (this.country.map_handler.view_only) {
+      checkbox.disabled = true;
+    }
     checkbox.type = 'checkbox';
     check_cell.appendChild(checkbox);
     checkbox.checked = checked;
@@ -138,21 +144,22 @@ class CountryOverview {
         });
       }
       // console.log('updated activity:', value, old_value);
-    });
+    }, 'p', false, this.country.map_handler.view_only);
     const description_cell = this.notes_table.add_cell(row_index, ['activity-description-cell']);
     description_cell.appendChild(this.note_description_spans[note_id].span);
     const category_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'category']);
     if (emoji !== undefined && !Object.keys(note_icons).includes(category)) {
       note_icons[category] = emoji;
     }
-    const category_select = new HTMLSelect(Object.entries(note_icons).map((icon) => [icon[0], icon[1]]), ['activity-select'], (selected) => {
+    const category_select = new HTMLSelect(Object.entries(note_icons).map((icon) => [icon[0], icon[1]]),
+        ['activity-select'], (selected) => {
       // console.log('Category changed! to ', selected);
       const args = {'parameters': {'note_id': note_id, 'column': 'category', 'value': selected}};
       backend_communication.call_google_function('POST',
             'update_country_note', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }).select;
+    }, this.country.map_handler.view_only).select;
     category_select.value = category;
     category_cell.appendChild(category_select);
     const cost_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'cost']);
@@ -162,7 +169,7 @@ class CountryOverview {
             'update_country_note', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }).span;
+    }, this.country.map_handler.view_only).span;
     cost_span.innerHTML = cost;
     cost_cell.appendChild(cost_span);
     const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
@@ -170,6 +177,7 @@ class CountryOverview {
     delete_cell.appendChild(delete_icon);
     delete_icon.classList.add('pointer');
     delete_icon.addEventListener('click', () => {
+      if (this.country.map_handler.view_only) { return; };
       if (confirm('Are you sure you want to delete this country note?')) {
         const args = {'parameters': {'note_id': note_id}};
         backend_communication.call_google_function('POST',

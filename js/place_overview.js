@@ -36,7 +36,7 @@ class PlaceOverview {
       // backend_communication.fetch('/travel/update_place/', args, (data) => {
       //   if (data['status'] !== 'OK') console.log(data);
       // });
-    }, 'span', true).span;
+    }, 'span', true, this.place.map_handler.view_only).span;
     place_name.style = 'padding: 0px';
     this.title.appendChild(place_name);
     // const country_span = document.createElement('span');
@@ -138,7 +138,7 @@ class PlaceOverview {
       this.place.country.seasons.sort((a, b) => a.id - b.id).forEach((season) => {
         seasons.push([season.id, (season.description === null) ? 'Default' : season.description]);
       })
-      this.season_select = new HTMLSelect(seasons, [], this.season_changed).select;
+      this.season_select = new HTMLSelect(seasons, [], this.season_changed, this.place.map_handler.view_only).select;
       this.season_select.value = this.place.season.id;
       season_span.appendChild(this.season_select);
     } else {
@@ -246,7 +246,7 @@ class PlaceOverview {
         // backend_communication.fetch('/travel/update_place/', args, (data) => {
         //   if (data['status'] !== 'OK') console.log(data)
         // });
-      }).span;
+      }, this.place.map_handler.view_only).span;
       cost_span.innerHTML = this.place.costs[cost_type];
       cost_cell.appendChild(cost_span);
     });
@@ -319,7 +319,10 @@ class PlaceOverview {
     add_activity_container.appendChild(add_activity);
     add_activity.classList.add('pointer');
     add_activity.innerHTML = '➕'; //'<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M20 29H6a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3zM6 11a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V12a1 1 0 0 0-1-1zM10 8a1 1 0 0 1-1-1V6a3 3 0 0 1 3-3h1a1 1 0 0 1 0 2h-1a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1zM26 23h-1a1 1 0 0 1 0-2h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1-3 3zM28 8a1 1 0 0 1-1-1V6a1 1 0 0 0-1-1h-1a1 1 0 0 1 0-2h1a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1zM28 16a1 1 0 0 1-1-1v-4a1 1 0 0 1 2 0v4a1 1 0 0 1-1 1zM21 5h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M16 20h-6a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M13 23a1 1 0 0 1-1-1v-6a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    add_activity.addEventListener('click', () => this.add_activity(undefined,false, 'Edit description to save'));
+    add_activity.addEventListener('click', () => {
+      if (this.place.map_handler.view_only) { return }
+      this.add_activity(undefined,false, 'Edit description to save')
+    });
   }
 
   add_activity = (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
@@ -329,6 +332,9 @@ class PlaceOverview {
     const row = this.activities_table.add_row(['activity-row']);
     const check_cell = this.activities_table.add_cell(row_index, ['activity-cell']);
     const checkbox = document.createElement('input');
+    if (this.place.map_handler.view_only) {
+      checkbox.disabled = true;
+    }
     checkbox.type = 'checkbox';
     check_cell.appendChild(checkbox);
     checkbox.checked = checked;
@@ -362,7 +368,7 @@ class PlaceOverview {
         });
       }
       // console.log('updated activity:', value, old_value);
-    });
+    }, 'p', false, this.place.map_handler.view_only);
     const description_cell = this.activities_table.add_cell(row_index, ['activity-description-cell']);
     description_cell.appendChild(this.activity_description_spans[activity_id].span);
     const category_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'category']);
@@ -377,7 +383,7 @@ class PlaceOverview {
             'update_activity', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }).select;
+    }, this.place.map_handler.view_only).select;
     category_select.value = category;
     category_cell.appendChild(category_select);
     const cost_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'cost']);
@@ -388,7 +394,7 @@ class PlaceOverview {
             'update_activity', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }).span;
+    }, this.place.map_handler.view_only).span;
     cost_span.innerHTML = cost;
     cost_cell.appendChild(cost_span);
     const delete_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'delete']);
@@ -396,6 +402,7 @@ class PlaceOverview {
     delete_cell.appendChild(delete_icon);
     delete_icon.classList.add('pointer');
     delete_icon.addEventListener('click', () => {
+      if (this.place.map_handler.view_only) { return };
       if (confirm('Are you sure you want to delete this activity?')) {
         // console.log(`Delete activity from row ${row_index}!`);
         const args = {'parameters': {'activity_id': activity_id}};
@@ -448,7 +455,10 @@ class PlaceOverview {
     add_note_container.appendChild(add_note);
     add_note.classList.add('pointer');
     add_note.innerHTML = '➕';
-    add_note.addEventListener('click', () => this.add_note(undefined,false, 'Edit description to save'));
+    add_note.addEventListener('click', () => {
+      if (this.place.map_handler.view_only) { return }
+      this.add_note(undefined,false, 'Edit description to save')
+    });
   }
 
   add_note= (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
@@ -458,6 +468,9 @@ class PlaceOverview {
     const row = this.notes_table.add_row(['activity-row']);
     const check_cell = this.notes_table.add_cell(row_index, ['activity-cell']);
     const checkbox = document.createElement('input');
+    if (this.place.map_handler.view_only) {
+      checkbox.disabled = true;
+    }
     checkbox.type = 'checkbox';
     check_cell.appendChild(checkbox);
     checkbox.checked = checked;
@@ -491,7 +504,7 @@ class PlaceOverview {
         });
       }
       // console.log('updated activity:', value, old_value);
-    });
+    }, 'p', false, this.place.map_handler.view_only);
     const description_cell = this.notes_table.add_cell(row_index, ['activity-description-cell']);
     description_cell.appendChild(this.note_description_spans[note_id].span);
     const category_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'category']);
@@ -505,7 +518,7 @@ class PlaceOverview {
             'update_place_note', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }).select;
+    }, this.place.map_handler.view_only).select;
     category_select.value = category;
     category_cell.appendChild(category_select);
     const cost_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'cost']);
@@ -515,7 +528,7 @@ class PlaceOverview {
             'update_place_note', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }).span;
+    }, this.place.map_handler.view_only).span;
     cost_span.innerHTML = cost;
     cost_cell.appendChild(cost_span);
     const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
@@ -523,6 +536,7 @@ class PlaceOverview {
     delete_cell.appendChild(delete_icon);
     delete_icon.classList.add('pointer');
     delete_icon.addEventListener('click', () => {
+      if (this.place.map_handler.view_only) { return; }
       if (confirm('Are you sure you want to delete this place note?')) {
         const args = {'parameters': {'note_id': note_id}};
         backend_communication.call_google_function('POST',
