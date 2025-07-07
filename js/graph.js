@@ -134,9 +134,9 @@ class Graph {
     this.sorted_covered_visits.forEach(visit => {
       const route_nights = (previous_visit === undefined) ? 0 : previous_visit?.next_edge.value.route.nights.value;
       current_date.setDate(current_date.getDate() + route_nights);
-      visit.entry_date.value = new Date(current_date);
+      visit.entry_date.value = new Date(Date.UTC(current_date.getUTCFullYear(), current_date.getUTCMonth(), current_date.getUTCDate()));
       current_date.setDate(current_date.getDate() + visit.nights.value);
-      visit.exit_date.value = new Date(current_date);
+      visit.exit_date.value = new Date(Date.UTC(current_date.getUTCFullYear(), current_date.getUTCMonth(), current_date.getUTCDate()));
       if (visit.place.country !== current_country) {
         current_country = visit.place.country;
         visit.place.country.visits.value = [...visit.place.country.visits.value, [visit.entry_date.value, visit.exit_date.value]];
