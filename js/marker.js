@@ -613,7 +613,7 @@ class PlaceMarker {
     this.plus_cell.addEventListener('click', (event) => {
       event.stopPropagation();
       if (this.place.map_handler.view_only) { return; }
-      this.set_popup;
+      this.set_popup(event);
     });
     this.plus_cell.classList.add('right-cell');
     this.plus_cell.innerHTML = '+';
