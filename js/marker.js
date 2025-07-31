@@ -439,7 +439,7 @@ class VisitPopup {
     gps.classList.add('edit');
     gps.addEventListener('click', (event) => {
       if (this.visit.place.map_handler.view_only) { return; }
-      this.visit.place.included.value = !this.visit.included.value;
+      this.visit.included.value = !this.visit.included.value;
     });
     const current_visit_cell = table_constructor.add_cell(2, ['current-visit']);
     const current_visit_name_span = document.createElement('span');
