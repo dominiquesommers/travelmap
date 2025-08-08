@@ -228,7 +228,8 @@ class MapHandler {
     })
   }
 
-  add_place = (place_id, name, country, coordinates, season=undefined, costs=undefined, activities=[], place_notes=[]) => {
+  add_place = (place_id, name, country, coordinates, season=undefined, estimated_costs=undefined,
+               actual_costs=undefined, paids=undefined, activities=[], place_notes=[]) => {
     if (place_id === undefined) {
       const args = { 'parameters': {'name': name, 'country': (country instanceof Country) ? country.name : country,
           'lat': coordinates.lat, 'lng': coordinates.lng , 'season_id': season?.id}};
@@ -247,9 +248,12 @@ class MapHandler {
       });
     } else {
       const new_place = {};
-      costs = (costs !== undefined) ? costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
+      estimated_costs = (estimated_costs !== undefined) ? estimated_costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
+      actual_costs = (actual_costs !== undefined) ? actual_costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
+      paids = (paids !== undefined) ? paids : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
       console.log()
-      new_place[place_id] = new Place(place_id, name, country, coordinates, season, costs, activities, place_notes, this);
+      new_place[place_id] = new Place(place_id, name, country, coordinates, season, estimated_costs, actual_costs, paids,
+          activities, place_notes, this);
       this.places.value = {...this.places.value, ...new_place};
       return new_place[place_id];
     }
@@ -293,29 +297,23 @@ class MapHandler {
   }
 
   add_route = (route_id, source_id, destination_id, route_type=undefined, distance=0, duration=0,
-               cost=0, nights=0, route=undefined, route_notes=[], callback=(new_route) => {}) => {
+               estimated_cost=0, actual_cost=0, paid=false, nights=0, route=undefined, route_notes=[], callback=(new_route) => {}) => {
     if (route_id === undefined) {
       const args = { 'parameters': {'source_id': source_id, 'destination_id': destination_id, 'route_type': route_type,
-                                                     'distance': distance, 'duration': duration, 'cost': cost, 'nights': nights, 'route': route} };
+                                                     'distance': distance, 'duration': duration, 'estimated_cost': estimated_cost,
+                                                     'actual_cost': actual_cost, '': paid, 'nights': nights, 'route': route} };
       backend_communication.call_google_function('POST',
         'add_route', args, (data) => {
         if (data['status'] === 'OK') {
-          callback(this.add_route(data['route_id'], source_id, destination_id, route_type, distance, duration, cost, nights, route));
+          callback(this.add_route(data['route_id'], source_id, destination_id, route_type, distance, duration, estimated_cost, actual_cost, paid, nights, route));
         } else {
           console.log(data);
           callback(undefined);
         }
       });
-      // backend_communication.fetch('/travel/add_route/', args, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     callback(this.add_route(data['route_id'], source_id, destination_id, route_type, distance, duration, cost, nights, route));
-      //   } else {
-      //     console.log(data);
-      //     callback(undefined);
-      //   }
-      // });
     } else {
-      const new_route = new Route(route_id, this.places.value[source_id], this.places.value[destination_id], route_type, distance, duration, cost, nights, route, route_notes, this);
+      const new_route = new Route(route_id, this.places.value[source_id], this.places.value[destination_id],
+          route_type, distance, duration, estimated_cost, actual_cost, paid, nights, route, route_notes, this);
       const routes = {};
       routes[route_id] = new_route;
       this.routes.value = {...this.routes.value, ...routes};

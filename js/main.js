@@ -44,12 +44,14 @@ class TravelApp {
 
     for (const [place_id, place_data] of Object.entries(data.places)) {
       const new_place = this.map_handler.add_place(place_id, place_data.name, this.map_handler.countries[place_data['country_id']],
-          place_data.coordinates, data.seasons[place_data['season_id']], place_data.costs, data['activities'][place_id], data['place_notes'][place_id]);
+          place_data.coordinates, data.seasons[place_data['season_id']], place_data.estimated_costs, place_data.actual_costs,
+          place_data.paids, data['activities'][place_id], data['place_notes'][place_id]);
     }
 
     for (const [route_id, route_data] of Object.entries(data.routes)) {
       const route = this.map_handler.add_route(route_id, route_data.source, route_data.destination, route_data.type,
-          route_data.distance, route_data.duration, route_data.cost, route_data.nights, route_data.route, data['route_notes'][route_id]);
+          route_data.distance, route_data.duration, route_data.estimated_cost, route_data.actual_cost, route_data.paid,
+          route_data.nights, route_data.route, data['route_notes'][route_id]);
     }
 
     const visits = {};

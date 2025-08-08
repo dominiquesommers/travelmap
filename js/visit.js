@@ -34,14 +34,16 @@ class Country {
 }
 
 class Place {
-  constructor(id, name, country, coordinates, season, costs, activities, notes, map_handler) {
+  constructor(id, name, country, coordinates, season, estimated_costs, actual_costs, paids, activities, notes, map_handler) {
     this.id = id;
     this.name = name;
     this.country = country;
     this.coordinates = coordinates;
     this.season = (season !== undefined) ? season :
         { jan: 1, feb: 1, mar: 1, apr: 1, may: 1, jun: 1, jul: 1, aug: 1, sep: 1, oct: 1, nov: 1, dec: 1, description: 'default', description_abbreviation: 'D' };
-    this.costs = costs;
+    this.estimated_costs = estimated_costs;
+    this.actual_costs = actual_costs;
+    this.paids = paids;
     this.activities = (activities === undefined) ? [] : activities;
     this.activities_descriptions_loaded = false;
     this.notes = (notes === undefined) ? [] : notes;

@@ -235,8 +235,9 @@ class PlaceOverview {
 
     ['accommodation', 'food', 'miscellaneous'].forEach((cost_type) => {
       const cost_cell = costs_table.add_cell(1, ['activity-cell', 'cost']);
-      const cost_span = new HTMLNumber([], (value) => {
-        const args = {'parameters': {'place_id': this.place.id, 'column': `${cost_type}_cost`, 'value': value}};
+      const cost_span = new HTMLCost([], (value, prefix) => {
+        const cost_cat = (prefix === 'paid') ? 'paid' : `${prefix}_cost`;
+        const args = {'parameters': {'place_id': this.place.id, 'column': `${cost_type}_${cost_cat}`, 'value': value}};
         backend_communication.call_google_function('POST',
           'update_place', args, (data) => {
           console.log(data);
@@ -246,9 +247,12 @@ class PlaceOverview {
         // backend_communication.fetch('/travel/update_place/', args, (data) => {
         //   if (data['status'] !== 'OK') console.log(data)
         // });
-      }, this.place.map_handler.view_only).span;
-      cost_span.innerHTML = this.place.costs[cost_type];
-      cost_cell.appendChild(cost_span);
+      }, this.place.paids[cost_type], this.place.map_handler.view_only);
+      cost_span.estimated_cost.span.innerHTML = this.place.estimated_costs[cost_type];
+      cost_span.actual_cost.span.innerHTML = this.place.actual_costs[cost_type]; // TODO fix
+      cost_cell.appendChild(cost_span.span);
+      // cost_span.innerHTML = this.place.costs[cost_type];
+      // cost_cell.appendChild(cost_span);
     });
   }
 
@@ -309,7 +313,8 @@ class PlaceOverview {
     this.activities_table.add_cell(0).innerHTML = '€';
 
     this.place.activities.forEach((activity) => {
-      this.add_activity(activity.id, activity.included, activity.description, activity.category, activity.cost);
+      this.add_activity(activity.id, activity.included, activity.description, activity.category, activity.estimated_cost,
+          activity.actual_cost, activity.paid);
     });
 
     const add_activity_container = document.createElement('div');
@@ -325,7 +330,8 @@ class PlaceOverview {
     });
   }
 
-  add_activity = (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
+  add_activity = (id=undefined, checked=false, description='', category=undefined,
+                  estimated_cost=0, actual_cost=0, paid=false, emoji=undefined) => {
     if (description === undefined) description = '';
     let activity_id = id;
     const row_index = this.activities_table.rows.length;
@@ -387,16 +393,17 @@ class PlaceOverview {
     category_select.value = category;
     category_cell.appendChild(category_select);
     const cost_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'cost']);
-    const cost_span = new HTMLNumber([], (value) => {
-      // console.log(`Activity cost changed: ${Number(value)}`);
-      const args = {'parameters': {'activity_id': activity_id, 'column': 'cost', 'value': value}};
+    const cost_span = new HTMLCost([], (value, prefix) => {
+      const args = {'parameters': {'activity_id': activity_id,
+          'column': (prefix === 'paid') ? 'paid' : `${prefix}_cost`,'value': value}};
       backend_communication.call_google_function('POST',
             'update_activity', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }, this.place.map_handler.view_only).span;
-    cost_span.innerHTML = cost;
-    cost_cell.appendChild(cost_span);
+    }, paid, this.place.map_handler.view_only);
+    cost_span.estimated_cost.span.innerHTML = estimated_cost;
+    cost_span.actual_cost.span.innerHTML = actual_cost;
+    cost_cell.appendChild(cost_span.span);
     const delete_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'delete']);
     const delete_icon = document.createElement('span');
     delete_cell.appendChild(delete_icon);
@@ -445,7 +452,7 @@ class PlaceOverview {
     this.notes_table.add_cell(0).innerHTML = '€';
 
     this.place.notes.forEach((note) => {
-      this.add_note(note.id, note.included, note.description, note.category, note.cost);
+      this.add_note(note.id, note.included, note.description, note.category, note.estimated_cost, note.actual_cost, note.paid);
     });
 
     const add_note_container = document.createElement('div');
@@ -461,7 +468,8 @@ class PlaceOverview {
     });
   }
 
-  add_note= (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
+  add_note= (id=undefined, checked=false, description='', category=undefined,
+             estimated_cost=0, actual_cost=0, paid=false, emoji=undefined) => {
     if (description === undefined) description = '';
     let note_id = id;
     const row_index = this.notes_table.rows.length;
@@ -522,15 +530,17 @@ class PlaceOverview {
     category_select.value = category;
     category_cell.appendChild(category_select);
     const cost_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'cost']);
-    const cost_span = new HTMLNumber([], (value) => {
-      const args = {'parameters': {'note_id': note_id, 'column': 'cost', 'value': value}};
+    const cost_span = new HTMLCost([], (value, prefix) => {
+      const args = {'parameters': {'note_id': note_id, 'column': (prefix === 'paid') ? 'paid' : `${prefix}_cost`,
+          'value': value}};
       backend_communication.call_google_function('POST',
             'update_place_note', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }, this.place.map_handler.view_only).span;
-    cost_span.innerHTML = cost;
-    cost_cell.appendChild(cost_span);
+    }, paid, this.place.map_handler.view_only);
+    cost_span.estimated_cost.span.innerHTML = estimated_cost;
+    cost_span.actual_cost.span.innerHTML = actual_cost;
+    cost_cell.appendChild(cost_span.span);
     const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
     const delete_icon = document.createElement('span');
     delete_cell.appendChild(delete_icon);

@@ -115,7 +115,8 @@ class Graph {
 
     this.update_dates();
     this.update_rent_info();
-    this.update_cost_info();
+    // this.update_cost_info();
+    this.map_handler.overview.update_route(this.sorted_covered_visits[0]);
   }
 
   update_dates = () => {
@@ -150,7 +151,6 @@ class Graph {
       }
       previous_visit = visit;
     });
-    this.map_handler.overview.update_route(this.sorted_covered_visits[0]);
   }
 
   update_rent_info = () => {
@@ -167,80 +167,96 @@ class Graph {
     });
   }
 
-  update_cost_info = () => {
-    let total_cost = {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0};
-    let rent_until_edge = undefined;
-    let covered_places = new Set();
-    let routes_to_do = [];
-    this.sorted_covered_visits.forEach(visit => {
-      // console.log();
-      // console.log(visit.place.name, visit.nights.value);
-      if (visit === rent_until_edge?.rent_until) {
-        rent_until_edge = undefined;
-      }
-
-      // console.log(rent_until_edge)
-
-      if (rent_until_edge !== undefined) {
-        if (rent_until_edge.includes_accommodation) {
-          // console.log('jjaa', rent_until_edge.route.cost.value * visit.nights.value)
-          total_cost.transport += 0.5 * rent_until_edge.route.cost.value * visit.nights.value;
-          total_cost.accommodation += 0.5 * rent_until_edge.route.cost.value * visit.nights.value;
-        } else {
-          total_cost.transport += rent_until_edge.route.cost.value * visit.nights.value;
-        }
-      }
-
-      // visit_cost: nights*acco (unless visit.included_in_rent), nights*food, nights*misc]
-      if (rent_until_edge === undefined || !rent_until_edge.includes_accommodation) {
-        // console.log(rent_until_edge?.includes_accommodation, visit.place.costs.accommodation)
-        total_cost.accommodation += visit.nights.value * visit.place.costs.accommodation;
-      }
-
-      total_cost.food += visit.nights.value * visit.place.costs.food;
-      total_cost.miscellaneous += visit.nights.value * visit.place.costs.miscellaneous;
-
-      if (!covered_places.has(visit.place)) {
-        visit.place.activities.forEach(activity => {
-          if (activity.included) {
-            total_cost.activities += activity.cost;
-          }
-        });
-      }
-
-      const edge = visit.next_edge.value;
-      if (edge?.rent_until !== undefined) {
-        rent_until_edge = edge;
-        // rent_includes_accommodation = edge.includes_accommodation;
-      }
-
-      if (edge !== undefined && rent_until_edge === undefined) {
-        // console.log('jojojo', edge.route.cost.value)
-        if (edge.route.nights.value > 0) {
-          // console.log('j00ojojo', edge.route.cost.value)
-          if (edge.route.route_type.value === 'boat') {
-            total_cost.transport += 0.25 * edge.route.cost.value;
-            total_cost.accommodation += 0.25 * edge.route.cost.value;
-            total_cost.food += 0.25 * edge.route.cost.value;
-            total_cost.activities += 0.25 * edge.route.cost.value;
-          } else {
-            total_cost.transport += 0.4 * edge.route.cost.value;
-            total_cost.accommodation += 0.4 * edge.route.cost.value;
-            total_cost.food += 0.2 * edge.route.cost.value;
-          }
-        } else {
-          // console.log('j11ojojo', edge.route.cost.value)
-          total_cost.transport += edge.route.cost.value;
-        }
-      }
-
-      covered_places.add(visit.place);
-    });
-    console.log(total_cost);
-    console.log(total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities);
-    console.log(`Nr of routes without specified cost: ${routes_to_do.length}`)
-    routes_to_do.forEach((route, index) => {
-      console.log(`${index}: (${route.route_type.value}) ${route.source.name}, ${route.source.country.name} -> ${route.destination.name}, ${route.destination.country.name}`)
-    });
-  }
+  // update_cost_info = () => {
+  //   return;
+  //   let total_cost = {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0};
+  //   let rent_until_edge = undefined;
+  //   let covered_places = new Set();
+  //   let covered_countries = new Set();
+  //   let routes_to_do = [];
+  //   this.sorted_covered_visits.forEach(visit => {
+  //     // console.log();
+  //     // console.log(visit.place.name, visit.nights.value);
+  //     if (visit === rent_until_edge?.rent_until) {
+  //       rent_until_edge = undefined;
+  //     }
+  //
+  //     // console.log(rent_until_edge)
+  //
+  //     if (rent_until_edge !== undefined) {
+  //       if (rent_until_edge.includes_accommodation) {
+  //         // console.log('jjaa', rent_until_edge.route.estimated_cost.value * visit.nights.value)
+  //         total_cost.transport += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
+  //         total_cost.accommodation += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
+  //       } else {
+  //         total_cost.transport += rent_until_edge.route.estimated_cost.value * visit.nights.value;
+  //       }
+  //     }
+  //
+  //     // visit_cost: nights*acco (unless visit.included_in_rent), nights*food, nights*misc]
+  //     if (rent_until_edge === undefined || !rent_until_edge.includes_accommodation) {
+  //       // console.log(rent_until_edge?.includes_accommodation, visit.place.costs.accommodation)
+  //       total_cost.accommodation += visit.nights.value * visit.place.costs.accommodation;
+  //     }
+  //
+  //     total_cost.food += visit.nights.value * visit.place.costs.food;
+  //     total_cost.miscellaneous += visit.nights.value * visit.place.costs.miscellaneous;
+  //
+  //     if (!covered_places.has(visit.place)) {
+  //       visit.place.activities.forEach(activity => {
+  //         if (activity.included) {
+  //           total_cost.activities += activity.cost;
+  //         }
+  //       });
+  //       visit.place.notes.forEach(note => {
+  //         if (note.included) {
+  //           total_cost.miscellaneous += note.cost;
+  //         }
+  //       });
+  //     }
+  //
+  //     if (!covered_countries.has(visit.place.country)) {
+  //       covered_countries.add(visit.place.country);
+  //       visit.place.country.notes.forEach(note => {
+  //         if (note.included) {
+  //           total_cost.miscellaneous += note.cost;
+  //         }
+  //       });
+  //     }
+  //
+  //     const edge = visit.next_edge.value;
+  //     if (edge?.rent_until !== undefined) {
+  //       rent_until_edge = edge;
+  //       // rent_includes_accommodation = edge.includes_accommodation;
+  //     }
+  //
+  //     if (edge !== undefined && rent_until_edge === undefined) {
+  //       // console.log('jojojo', edge.route.estimated_cost.value)
+  //       if (edge.route.nights.value > 0) {
+  //         // console.log('j00ojojo', edge.route.estimated_cost.value)
+  //         if (edge.route.route_type.value === 'boat') {
+  //           total_cost.transport += 0.25 * edge.route.estimated_cost.value;
+  //           total_cost.accommodation += 0.25 * edge.route.estimated_cost.value;
+  //           total_cost.food += 0.25 * edge.route.estimated_cost.value;
+  //           total_cost.activities += 0.25 * edge.route.estimated_cost.value;
+  //         } else {
+  //           total_cost.transport += 0.4 * edge.route.estimated_cost.value;
+  //           total_cost.accommodation += 0.4 * edge.route.estimated_cost.value;
+  //           total_cost.food += 0.2 * edge.route.estimated_cost.value;
+  //         }
+  //       } else {
+  //         // console.log('j11ojojo', edge.route.estimated_cost.value)
+  //         total_cost.transport += edge.route.estimated_cost.value;
+  //       }
+  //     }
+  //
+  //     covered_places.add(visit.place);
+  //   });
+  //   console.log(total_cost);
+  //   console.log(total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities);
+  //   console.log(`Nr of routes without specified cost: ${routes_to_do.length}`)
+  //   routes_to_do.forEach((route, index) => {
+  //     console.log(`${index}: (${route.route_type.value}) ${route.source.name}, ${route.source.country.name} -> ${route.destination.name}, ${route.destination.country.name}`)
+  //   });
+  // }
 }

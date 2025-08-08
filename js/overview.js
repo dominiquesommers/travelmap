@@ -153,9 +153,7 @@ class Overview {
     let covered_places = new Set();
     let covered_countries = new Set();
     let current_country = this.maphandler.graph.sorted_covered_visits[0].place.country.name;
-    // console.log(current_country);
     this.maphandler.graph.sorted_covered_visits.forEach(visit => {
-      // console.log(visit.place.get_id());
       if (!(visit.place.country.name in country_costs)) {
         country_costs[visit.place.country.name] = {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0, nights: 0};
       }
@@ -167,29 +165,29 @@ class Overview {
       }
       if (rent_until_edge !== undefined) {
         if (rent_until_edge.includes_accommodation) {
-          country_costs[visit.place.country.name].transport += 0.5 * rent_until_edge.route.cost.value * visit.nights.value;
-          country_costs[visit.place.country.name].accommodation += 0.5 * rent_until_edge.route.cost.value * visit.nights.value;
+          country_costs[visit.place.country.name].transport += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
+          country_costs[visit.place.country.name].accommodation += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
         } else {
-          country_costs[visit.place.country.name].transport += rent_until_edge.route.cost.value * visit.nights.value;
+          country_costs[visit.place.country.name].transport += rent_until_edge.route.estimated_cost.value * visit.nights.value;
         }
       }
       if (rent_until_edge === undefined || !rent_until_edge.includes_accommodation) {
-        country_costs[visit.place.country.name].accommodation += visit.nights.value * visit.place.costs.accommodation;
+        country_costs[visit.place.country.name].accommodation += visit.nights.value * visit.place.estimated_costs.accommodation;
       }
 
-      country_costs[visit.place.country.name].food += visit.nights.value * visit.place.costs.food;
-      country_costs[visit.place.country.name].miscellaneous += visit.nights.value * visit.place.costs.miscellaneous;
+      country_costs[visit.place.country.name].food += visit.nights.value * visit.place.estimated_costs.food;
+      country_costs[visit.place.country.name].miscellaneous += visit.nights.value * visit.place.estimated_costs.miscellaneous;
 
       if (!covered_places.has(visit.place)) {
         covered_places.add(visit.place);
         visit.place.activities.forEach(activity => {
           if (activity.included) {
-            country_costs[visit.place.country.name].activities += activity.cost;
+            country_costs[visit.place.country.name].activities += activity.estimated_cost;
           }
         });
         visit.place.notes.forEach(note => {
           if (note.included) {
-            country_costs[visit.place.country.name].miscellaneous += note.cost;
+            country_costs[visit.place.country.name].miscellaneous += note.estimated_cost;
           }
         });
       }
@@ -198,7 +196,7 @@ class Overview {
         covered_countries.add(visit.place.country);
         visit.place.country.notes.forEach(note => {
           if (note.included) {
-            country_costs[visit.place.country.name].miscellaneous += note.cost;
+            country_costs[visit.place.country.name].miscellaneous += note.estimated_cost;
           }
         });
       }
@@ -211,21 +209,21 @@ class Overview {
       if (edge !== undefined && rent_until_edge === undefined) {
         if (edge.destination.place.country.name !== current_country) {
           current_country = edge.destination.place.country.name;
-          country_costs.cross_country.transport += edge.route.cost.value;
+          country_costs.cross_country.transport += edge.route.estimated_cost.value;
           country_costs.cross_country.nights += edge.route.nights.value;
         } else if (edge.route.nights.value > 0) {
           if (edge.route.route_type.value === 'boat') {
-            country_costs[visit.place.country.name].transport += 0.25 * edge.route.cost.value;
-            country_costs[visit.place.country.name].accommodation += 0.25 * edge.route.cost.value;
-            country_costs[visit.place.country.name].food += 0.25 * edge.route.cost.value;
-            country_costs[visit.place.country.name].activities += 0.25 * edge.route.cost.value;
+            country_costs[visit.place.country.name].transport += 0.25 * edge.route.estimated_cost.value;
+            country_costs[visit.place.country.name].accommodation += 0.25 * edge.route.estimated_cost.value;
+            country_costs[visit.place.country.name].food += 0.25 * edge.route.estimated_cost.value;
+            country_costs[visit.place.country.name].activities += 0.25 * edge.route.estimated_cost.value;
           } else {
-            country_costs[visit.place.country.name].transport += 0.4 * edge.route.cost.value;
-            country_costs[visit.place.country.name].accommodation += 0.4 * edge.route.cost.value;
-            country_costs[visit.place.country.name].food += 0.2 * edge.route.cost.value;
+            country_costs[visit.place.country.name].transport += 0.4 * edge.route.estimated_cost.value;
+            country_costs[visit.place.country.name].accommodation += 0.4 * edge.route.estimated_cost.value;
+            country_costs[visit.place.country.name].food += 0.2 * edge.route.estimated_cost.value;
           }
         } else {
-          country_costs[visit.place.country.name].transport += edge.route.cost.value;
+          country_costs[visit.place.country.name].transport += edge.route.estimated_cost.value;
         }
       }
     });
@@ -236,6 +234,7 @@ class Overview {
 
     console.log(total_cost);
     const total_total_cost = total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities;
+    console.log('total_total_cost', total_total_cost, Math.round(total_total_cost/100)/10)
     const total_avg_cost = (total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities - country_costs.cross_country.transport) / total_cost.nights;
     title_text.innerHTML = `Costs (€${Math.round(total_total_cost/100)/10}k, i.e., €${Math.round(total_avg_cost)}/d + €${Math.round(country_costs.cross_country.transport/100)/10}k cross)`;
 

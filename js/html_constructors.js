@@ -28,6 +28,95 @@ class SVGHandler {
   };
 }
 
+class HTMLCost {
+  constructor(css_classes=[], change_callback=(value)=>{}, paid=false, view_only=false) {
+    this.context_menu = document.createElement('div');
+    this.context_menu.style = 'position: fixed; z-index: 10000; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
+    this.mark_as_paid_button = document.createElement('button');
+    this.context_menu.appendChild(this.mark_as_paid_button);
+    this.is_paid = paid;
+    this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
+    this.mark_as_paid_button.classList.add('mark-as-paid');
+    this.span = document.createElement('span');
+    this.span.appendChild(this.context_menu);
+    this.estimated_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'estimated'), view_only);
+    this.estimated_cost_sup = document.createElement('sup');
+    this.estimated_cost_sup.innerHTML = '(est.)'
+    this.estimated_cost_sup.classList.add('hidden', 'opacity-50');
+    this.actual_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'actual'), view_only);
+    this.actual_cost.span.style = 'margin-left: 2px;';
+    this.actual_cost.span.classList.add('hidden');
+    this.actual_cost_sup = document.createElement('sup');
+    this.actual_cost_sup.innerHTML = '✔';
+    this.actual_cost_sup.classList.add('hidden', 'text-green-600');
+    this.span.appendChild(this.estimated_cost.span);
+    this.span.appendChild(this.estimated_cost_sup);
+    this.span.appendChild(this.actual_cost.span);
+    this.span.appendChild(this.actual_cost_sup);
+    this.mark_as_paid_button.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    this.span.addEventListener('contextmenu', (event) => {
+      if (view_only) {
+        return;
+      }
+      event.preventDefault();
+      this.context_menu.style.display = 'block';
+      this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const menuWidth = this.mark_as_paid_button.offsetWidth;
+      const menuHeight = this.mark_as_paid_button.offsetHeight;
+      let topPosition = event.clientY;
+      let leftPosition = event.clientX;
+      if (topPosition + menuHeight > viewportHeight) {
+        topPosition = viewportHeight - menuHeight - 5;
+      }
+      if (leftPosition + menuWidth > viewportWidth) {
+        leftPosition = viewportWidth - menuWidth - 5;
+      }
+      this.context_menu.style.top = `${topPosition}px`;
+      this.context_menu.style.left = `${leftPosition}px`;
+    });
+
+    const set_properties = () => {
+      if (this.is_paid) {
+        this.estimated_cost.span.classList.add('line-through', 'opacity-50');
+        this.estimated_cost_sup.classList.remove('hidden');
+        this.actual_cost.span.classList.remove('hidden');
+        this.actual_cost_sup.classList.remove('hidden');
+      } else {
+        this.estimated_cost.span.classList.remove('line-through', 'opacity-50');
+        this.estimated_cost_sup.classList.add('hidden');
+        this.actual_cost.span.classList.add('hidden');
+        this.actual_cost_sup.classList.add('hidden');
+      }
+    }
+    set_properties();
+
+    this.mark_as_paid_button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.is_paid = !this.is_paid;
+      change_callback(this.is_paid, 'paid');
+      set_properties();
+      this.context_menu.style.display = 'none';
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!this.context_menu.contains(event.target) && !this.span.contains(event.target)) {
+        this.context_menu.style.display = 'none';
+      }
+    });
+    document.addEventListener('contextmenu', (event) => {
+      if (!this.context_menu.contains(event.target) && !this.span.contains(event.target)) {
+        this.context_menu.style.display = 'none';
+      }
+    });
+  }
+}
+
 class HTMLNumber {
   constructor(css_classes=[], change_callback=(value)=>{}, view_only=false) {
     this.span = document.createElement('span');

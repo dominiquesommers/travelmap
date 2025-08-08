@@ -58,14 +58,14 @@ class VisitPopup {
       old_edge.destination.nights.unsubscribe(this.update_next_nights);
       old_edge.route.route_type.unsubscribe(this.update_next_route_info);
       old_edge.route.duration.unsubscribe(this.update_next_route_info);
-      old_edge.route.cost.unsubscribe(this.update_next_route_info);
+      old_edge.route.estimated_cost.unsubscribe(this.update_next_route_info);
     }
     // console.log(`Next edge updated: ${new_edge}`);
     if (new_edge !== undefined) {
       new_edge.destination.nights.subscribe(this.update_next_nights);
       new_edge.route.route_type.subscribe(this.update_next_route_info);
       new_edge.route.duration.subscribe(this.update_next_route_info);
-      new_edge.route.cost.subscribe(this.update_next_route_info);
+      new_edge.route.estimated_cost.subscribe(this.update_next_route_info);
       this.update_next_route_info();
       this.next_visit.innerHTML = `${this.adjacent_visit_string(new_edge.destination)}`;
       this.next_visit.addEventListener('click', () => {
@@ -93,7 +93,7 @@ class VisitPopup {
   update_next_route_info = () => {
     this.next_edge_type.innerHTML = transport_icons[this.visit.next_edge.value?.route.route_type.value];
     this.next_edge_duration.innerHTML = Math.round(this.visit.next_edge.value?.route.duration.value);
-    this.next_edge_cost.innerHTML = `${Math.round(this.visit.next_edge.value?.route.cost.value)}${(this.visit.next_edge.value?.route.route_type.value === 'driving') ? '/d' : ''}`;
+    this.next_edge_cost.innerHTML = `${Math.round(this.visit.next_edge.value?.route.estimated_cost.value)}${(this.visit.next_edge.value?.route.route_type.value === 'driving') ? '/d' : ''}`;
   }
 
   update_rent_info = () => {
@@ -146,7 +146,7 @@ class VisitPopup {
       let next_visit = this.visit;
       while (next_visit !== until_visit) {
         const arrival_route = next_visit.next_edge.value.route;
-        arrival_route.cost.value = base_route.cost.value;
+        arrival_route.estimated_cost.value = base_route.estimated_cost.value;
         next_visit = next_visit.next_edge.value.destination;
         next_visit.included_in_rent = true;
         const departure_route = next_visit.next_edge.value.route;
@@ -155,7 +155,7 @@ class VisitPopup {
         if (next_visit === until_visit) {
           // next_visit.
         } else {
-          departure_route.cost.value = base_route.cost.value;
+          departure_route.estimated_cost.value = base_route.estimated_cost.value;
           next_visit.popup.next_edge_rent.innerHTML = `Rent until: ${until_visit.place.name}_${until_visit.id}.<br>${acco_string}`
         }
       }
@@ -201,14 +201,14 @@ class VisitPopup {
       old_edge.source.nights.unsubscribe(this.update_previous_nights);
       old_edge.route.route_type.unsubscribe(this.update_previous_route_info);
       old_edge.route.duration.unsubscribe(this.update_previous_route_info);
-      old_edge.route.cost.unsubscribe(this.update_previous_route_info);
+      old_edge.route.estimated_cost.unsubscribe(this.update_previous_route_info);
     }
     // console.log(`update_previous_edge: ${new_edge}`);
     if (new_edge !== undefined) {
       new_edge.source.nights.subscribe(this.update_previous_nights);
       new_edge.route.route_type.subscribe(this.update_previous_route_info);
       new_edge.route.duration.subscribe(this.update_previous_route_info);
-      new_edge.route.cost.subscribe(this.update_previous_route_info);
+      new_edge.route.estimated_cost.subscribe(this.update_previous_route_info);
       this.update_previous_route_info();
       this.previous_visit.innerHTML = `${this.adjacent_visit_string(new_edge.source)}`;
       this.previous_visit.addEventListener('click', () => {
@@ -229,7 +229,7 @@ class VisitPopup {
   update_previous_route_info = () => {
     this.previous_edge_type.innerHTML = transport_icons[this.visit.previous_edge.value?.route.route_type.value];
     this.previous_edge_duration.innerHTML = Math.round(this.visit.previous_edge.value?.route.duration.value);
-    this.previous_edge_cost.innerHTML = `${Math.round(this.visit.previous_edge.value?.route.cost.value)}${(this.visit.previous_edge.value?.route.route_type.value === 'driving') ? '/d' : ''}`;
+    this.previous_edge_cost.innerHTML = `${Math.round(this.visit.previous_edge.value?.route.estimated_cost.value)}${(this.visit.previous_edge.value?.route.route_type.value === 'driving') ? '/d' : ''}`;
   }
 
   adjacent_visit_string = (visit) => {
@@ -360,9 +360,9 @@ class VisitPopup {
         } else {
           console.log('todo with route_id from database')
           console.log(this.visit.place.id)
-          // console.log(lslfldslfdsfds)
 
-          this.visit.place.map_handler.add_route(undefined, this.visit.place.id, new_destination.place.id, undefined, 0, 0, 0, 0,
+          this.visit.place.map_handler.add_route(undefined, this.visit.place.id, new_destination.place.id,
+              undefined, 0, 0, 0, 0, false, 0,
               [[this.visit.place.coordinates.lat, this.visit.place.coordinates.lng], [new_destination.place.coordinates.lat, new_destination.place.coordinates.lng]],
               [], (new_route) => {
             if (new_route !== undefined) {
@@ -463,9 +463,11 @@ class VisitPopup {
       this.visit.nights.value += 1;
     });
 
-    const delete_span = document.createElement('span');
+    const delete_span = document.createElement('sub');
     current_visit_cell.appendChild(delete_span);
-    delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    delete_span.style = 'margin-left: 2px;'
+    delete_span.innerHTML = '🗑️';
+    // delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     delete_span.classList.add('pointer');
     delete_span.addEventListener('click', (event) => {
       if (this.visit.place.map_handler.view_only) { return; }

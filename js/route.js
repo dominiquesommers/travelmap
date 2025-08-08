@@ -13,12 +13,6 @@ class Edge {
   get_id = () => {
     return `${this.source.place.get_id()}-${this.destination.place.get_id()}:${this.route.route_type.value}`
   }
-
-  // update = (y, map) => {
-  //   console.log(y);
-  //   // this.route
-  //   // map.setPaintProperty(layer.value, 'line-color', color);
-  // }
 }
 
 
@@ -53,7 +47,15 @@ class RoutePopup {
 
     this.duration = new HTMLNumber([], () => {this.route.duration.value = Number(this.duration.innerHTML);}, this.route.map_handler.view_only).span;
     this.route.duration.subscribe((new_value, old_value) => { this.duration.innerHTML = Math.round(new_value);} );
-    this.cost = new HTMLNumber([], () => {this.route.cost.value = Number(this.cost.innerHTML);}, this.route.map_handler.view_only).span;
+    this.cost = new HTMLCost([], (value, prefix) => {
+      if (prefix === 'estimated') {
+        this.route.estimated_cost.value = Number(value);
+      } else if (prefix === 'actual') {
+        this.route.actual_cost.value = Number(value);
+      } else if (prefix === 'paid') {
+        this.route.paid.value = value;
+      }
+    }, this.route.paid.value, this.route.map_handler.view_only);
     this.nights = new HTMLNumber([], () => {this.route.nights.value = Number(this.nights.innerHTML);}, this.route.map_handler.view_only).span;
   }
 
@@ -61,9 +63,9 @@ class RoutePopup {
     this.route.duration.value = Number(this.duration.innerHTML);
   }
 
-  cost_changed = () => {
-    this.route.cost.value = Number(this.cost.innerHTML);
-  }
+  // cost_changed = () => {
+  //   this.route.estimated_cost.value = Number(this.cost.innerHTML);
+  // }
 
   create_popup = () => {
     this.create_elements();
@@ -93,8 +95,9 @@ class RoutePopup {
     const divider = document.createElement('span');
     divider.innerHTML = 'h — €'
     cell5.appendChild(divider);
-    cell5.appendChild(this.cost);
-    this.cost.innerHTML = (this.route.cost.value !== undefined) ? Math.round(this.route.cost.value) : 0; // TODO default?
+    cell5.appendChild(this.cost.span);
+    this.cost.estimated_cost.span.innerHTML = (this.route.estimated_cost.value !== undefined) ? Math.round(this.route.estimated_cost.value) : 0; // TODO default?
+    this.cost.actual_cost.span.innerHTML = (this.route.actual_cost.value !== undefined) ? Math.round(this.route.actual_cost.value) : 0; // TODO fix
     this.per_day = document.createElement('span');
     this.per_day.innerHTML = (this.route.route_type.value === 'driving') ? '/d' : '';
     cell5.appendChild(this.per_day);
@@ -107,9 +110,11 @@ class RoutePopup {
     divider3.innerHTML = ' nights.'
     cell5.appendChild(divider3);
 
-    const delete_span = document.createElement('span');
+    const delete_span = document.createElement('sub');
     cell5.appendChild(delete_span);
-    delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    delete_span.style = 'margin-left: 2px;'
+    delete_span.innerHTML = '🗑️';
+    // delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     delete_span.classList.add('pointer');
     delete_span.addEventListener('click', (event) => {
       if (confirm('Are you sure you want to delete this route?')) {
@@ -134,7 +139,8 @@ class RoutePopup {
 
 
 class Route {
-  constructor(id, source, destination, route_type, distance=0, duration=0, cost=0, nights=0, route, route_notes, map_handler) {
+  constructor(id, source, destination, route_type, distance=0, duration=0, estimated_cost=0,
+              actual_cost=0, paid=false, nights=0, route, route_notes, map_handler) {
     this.id = id;
     this.source = source;
     this.destination = destination;
@@ -145,8 +151,12 @@ class Route {
     this.distance.subscribe((new_value, old_value) => this.property_changed('distance', new_value, old_value));
     this.duration = new Observable(duration, this.check_same);
     this.duration.subscribe((new_value, old_value) => this.property_changed('duration', new_value, old_value));
-    this.cost = new Observable(cost, this.check_same);
-    this.cost.subscribe((new_value, old_value) => this.property_changed('cost', new_value, old_value));
+    this.estimated_cost = new Observable(estimated_cost, this.check_same);
+    this.estimated_cost.subscribe((new_value, old_value) => this.property_changed('estimated_cost', new_value, old_value));
+    this.actual_cost = new Observable(actual_cost, this.check_same);
+    this.actual_cost.subscribe((new_value, old_value) => this.property_changed('actual_cost', new_value, old_value));
+    this.paid = new Observable(paid, this.check_same);
+    this.paid.subscribe((new_value, old_value) => this.property_changed('paid', new_value, old_value));
     this.nights = new Observable(nights, this.check_same);
     this.nights.subscribe((new_value, old_value) => this.property_changed('nights', new_value, old_value));
     this.route = (route === undefined) ? new Observable([[source.coordinates.lat, source.coordinates.lng], [destination.coordinates.lat, destination.coordinates.lng]], this.check_same) : new Observable(route, this.check_same);

@@ -85,7 +85,7 @@ class CountryOverview {
     this.notes_table.add_cell(0).innerHTML = '€';
 
     this.country.notes.forEach((note) => {
-      this.add_note(note.id, note.included, note.description, note.category, note.cost);
+      this.add_note(note.id, note.included, note.description, note.category, note.estimated_cost, note.actual_cost, note.paid);
     });
 
     const add_note_container = document.createElement('div');
@@ -101,7 +101,8 @@ class CountryOverview {
     });
   }
 
-  add_note= (id=undefined, checked=false, description='', category=undefined, cost=0, emoji=undefined) => {
+  add_note= (id=undefined, checked=false, description='', category=undefined,
+             estimated_cost=0, actual_cost=0, paid=false, emoji=undefined) => {
     if (description === undefined) description = '';
     let note_id = id;
     const row_index = this.notes_table.rows.length;
@@ -124,7 +125,10 @@ class CountryOverview {
     this.note_description_spans[note_id] = new HTMLText(description, ['activity-description'], (value, old_value) => {
       if (note_id === undefined && old_value === 'Edit description to save') {
         console.log('NEW and edited.')
-        const args = {'parameters': {'country_id': this.country.id, 'description': value, 'category': category_select.value, 'cost': Number(cost_span.innerHTML), 'included': checkbox.checked}};
+        const args = {'parameters': {'country_id': this.country.id, 'description': value,
+            'category': category_select.value, 'estimated_cost': Number(cost_span.estimated_cost.span.innerHTML),
+            'actual_cost': Number(cost_span.actual_cost.span.innerHTML), 'paid': cost_span.is_paid,
+            'included': checkbox.checked}};
         backend_communication.call_google_function('POST',
             'add_country_note', args, (data) => {
           if (data['status'] === 'OK') {
@@ -163,15 +167,17 @@ class CountryOverview {
     category_select.value = category;
     category_cell.appendChild(category_select);
     const cost_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'cost']);
-    const cost_span = new HTMLNumber([], (value) => {
-      const args = {'parameters': {'note_id': note_id, 'column': 'cost', 'value': value}};
+    const cost_span = new HTMLCost([], (value, prefix) => {
+      const args = {'parameters': {'note_id': note_id, 'column': (prefix === 'paid') ? 'paid' : `${prefix}_cost`,
+          'value': value}};
       backend_communication.call_google_function('POST',
             'update_country_note', args, (data) => {
         if (data['status'] !== 'OK') console.log(data);
       });
-    }, this.country.map_handler.view_only).span;
-    cost_span.innerHTML = cost;
-    cost_cell.appendChild(cost_span);
+    }, paid, this.country.map_handler.view_only);
+    cost_span.estimated_cost.span.innerHTML = estimated_cost;
+    cost_span.actual_cost.span.innerHTML = actual_cost;
+    cost_cell.appendChild(cost_span.span);
     const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
     const delete_icon = document.createElement('span');
     delete_cell.appendChild(delete_icon);
