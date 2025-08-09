@@ -53,11 +53,7 @@ class HTMLCost {
     this.span.appendChild(this.estimated_cost_sup);
     this.span.appendChild(this.actual_cost.span);
     this.span.appendChild(this.actual_cost_sup);
-    this.mark_as_paid_button.addEventListener('contextmenu', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
-    this.span.addEventListener('contextmenu', (event) => {
+    const open_context_menu = (event) => {
       if (view_only) {
         return;
       }
@@ -78,7 +74,23 @@ class HTMLCost {
       }
       this.context_menu.style.top = `${topPosition}px`;
       this.context_menu.style.left = `${leftPosition}px`;
+    }
+    this.mark_as_paid_button.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
     });
+    this.span.addEventListener('contextmenu', open_context_menu);
+    let touchTimer;
+    this.span.addEventListener('touchstart', (event) => {
+      event.preventDefault();
+      touchTimer = setTimeout(() => {
+        open_context_menu(event);
+      }, 750);
+    });
+    this.span.addEventListener('touchend', () => {
+      clearTimeout(touchTimer);
+    });
+
 
     const set_properties = () => {
       if (this.is_paid) {
