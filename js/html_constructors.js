@@ -123,6 +123,7 @@ class HTMLNumber {
   constructor(css_classes=[], change_callback=(value)=>{}, view_only=false) {
     this.span = document.createElement('span');
     this.span.style = 'padding: 0px 2px 0px 2px';
+    this.span.inputMode = 'numeric';
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
     this.change_callback = change_callback;
     this.span.addEventListener('keypress', (event) => {
