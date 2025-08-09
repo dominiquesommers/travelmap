@@ -145,6 +145,7 @@ class HTMLNumber {
 
     this.span.addEventListener('dblclick', (event) => {
       event.preventDefault();
+      event.stopPropagation();
       if (view_only) { return; }
       this.span.contentEditable = true;
       this.span.focus();
