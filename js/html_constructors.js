@@ -31,7 +31,7 @@ class SVGHandler {
 class HTMLCost {
   constructor(css_classes=[], change_callback=(value)=>{}, paid=false, view_only=false) {
     this.context_menu = document.createElement('div');
-    this.context_menu.style = 'position: fixed; z-index: 10000; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
+    this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
     this.mark_as_paid_button = document.createElement('button');
     this.context_menu.appendChild(this.mark_as_paid_button);
     this.is_paid = paid;
@@ -41,23 +41,29 @@ class HTMLCost {
     document.getElementById('mark-as-paid-buttons').appendChild(this.context_menu);
     this.estimated_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'estimated'), view_only);
     this.estimated_cost_sup = document.createElement('sup');
-    this.estimated_cost_sup.innerHTML = '(est.)'
+    this.estimated_cost_sup.innerHTML = '(est.)';
+    this.estimated_cost_sup.style = 'user-select: none;';
     this.estimated_cost_sup.classList.add('hidden', 'opacity-50');
     this.actual_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'actual'), view_only);
     this.actual_cost.span.style = 'margin-left: 2px;';
     this.actual_cost.span.classList.add('hidden');
     this.actual_cost_sup = document.createElement('sup');
     this.actual_cost_sup.innerHTML = '✔';
+    this.actual_cost_sup.style = 'user-select: none;';
     this.actual_cost_sup.classList.add('hidden', 'text-green-600');
     this.span.appendChild(this.estimated_cost.span);
     this.span.appendChild(this.estimated_cost_sup);
     this.span.appendChild(this.actual_cost.span);
     this.span.appendChild(this.actual_cost_sup);
-    const open_context_menu = (event) => {
+    this.mark_as_paid_button.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    this.span.addEventListener('contextmenu', (event) => {
       if (view_only) {
         return;
       }
-      event.preventDefault();
+      if (event instanceof PointerEvent) event.preventDefault();
       this.context_menu.style.display = 'block';
       this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
       const viewportWidth = window.innerWidth;
@@ -74,23 +80,7 @@ class HTMLCost {
       }
       this.context_menu.style.top = `${topPosition}px`;
       this.context_menu.style.left = `${leftPosition}px`;
-    }
-    this.mark_as_paid_button.addEventListener('contextmenu', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
     });
-    this.span.addEventListener('contextmenu', open_context_menu);
-    let touchTimer;
-    this.span.addEventListener('touchstart', (event) => {
-      event.preventDefault();
-      touchTimer = setTimeout(() => {
-        open_context_menu(event);
-      }, 750);
-    });
-    this.span.addEventListener('touchend', () => {
-      clearTimeout(touchTimer);
-    });
-
 
     const set_properties = () => {
       if (this.is_paid) {
@@ -132,7 +122,7 @@ class HTMLCost {
 class HTMLNumber {
   constructor(css_classes=[], change_callback=(value)=>{}, view_only=false) {
     this.span = document.createElement('span');
-    // this.span.contentEditable = true;
+    this.span.style = 'padding: 0px 2px 0px 2px';
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
     this.change_callback = change_callback;
     this.span.addEventListener('keypress', (event) => {
@@ -144,14 +134,21 @@ class HTMLNumber {
     });
 
     this.span.addEventListener('dblclick', (event) => {
+      if (this.span.contentEditable === 'true') {
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       if (view_only) { return; }
       this.span.contentEditable = true;
       this.span.focus();
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(this.span);
+      selection.removeAllRanges();
+      selection.addRange(range);
     });
 
-    // this.span.addEventListener('click', (event) => this.listen_for_double_click(this.span));
     this.span.addEventListener('blur', (event) => {
       this.span.innerHTML = Number(this.span.innerHTML);
       this.span.contentEditable = false;
@@ -161,15 +158,6 @@ class HTMLNumber {
       this.span.addEventListener(event, () => { return false; })
     })
   }
-
-  listen_for_double_click = (element) => {
-      element.contentEditable = true;
-      setTimeout(() => {
-        if (document.activeElement !== element) {
-          element.contentEditable = false;
-        }
-      }, 300);
-    }
 }
 
 class HTMLText {
@@ -189,27 +177,34 @@ class HTMLText {
     });
     }
 
-    this.span.addEventListener('dblclick', (event) => {
-      event.preventDefault();
-      if (view_only) { return; }
-      this.span.contentEditable = true;
-      console.log(document.activeElement, this.value);
-      if (document.activeElement !== this.span) {
-        this.span.innerHTML = this.value;
-      }
-      this.span.focus();
-      console.log('stopprop5');
+    this.span.addEventListener('contextmenu', (event) => {
+      console.log('TODO implement mark as done button.');
       event.preventDefault();
       event.stopPropagation();
     });
 
+    this.span.addEventListener('dblclick', (event) => {
+      if (this.span.contentEditable === 'true') {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      if (view_only) { return; }
+      this.span.contentEditable = true;
+      if (document.activeElement !== this.span) {
+        this.span.innerHTML = this.value;
+      }
+      this.span.focus();
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(this.span);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
 
-    // this.span.addEventListener('click', (event) => this.listen_for_double_click(event, this.span));
-    this.timer;
-    this.span.addEventListener('touchstart', (event) => this.listen_for_hold(event, this.span));
-    this.span.addEventListener('touchend', (event) => clearTimeout(this.timer));
+
     this.span.addEventListener('blur', (event) => {
-      console.log('blur');
       this.span.contentEditable = false;
       if (this.value !== this.span.innerHTML) {
         this.change_callback(this.span.innerHTML, this.value);
@@ -250,33 +245,6 @@ class HTMLText {
         current_index = match.index + match[0].length;
     });
     this.span.innerHTML += this.value.slice(current_index);
-  }
-
-  listen_for_double_click = (event, element) => {
-    if (event.target !== element) {
-      return;
-    }
-    element.contentEditable = true;
-    if (document.activeElement !== element) {
-      this.span.innerHTML = this.value;
-    }
-    setTimeout(() =>{
-      if (document.activeElement !== element) {
-        element.contentEditable = false;
-        this.process();
-      }
-    }, 300);
-  }
-
-  listen_for_hold = (event, element) => {
-    console.log('lisstne')
-    this.timer = setTimeout(() => {
-      console.log('holded.')
-      element.contentEditable = true;
-      if (document.activeElement !== element) {
-        this.span.innerHTML = this.value;
-      }
-    }, 1000);
   }
 }
 
