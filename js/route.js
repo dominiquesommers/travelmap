@@ -177,6 +177,7 @@ class Route {
     this.popup = new mapboxgl.Popup({ closeOnClick: true, maxWidth: '450px', className: 'popupdiv', offset: this.route_popup.popup_offsets }).setDOMContent(this.route_popup.popup_div);
     this.overview = new RouteOverview(this);
     this.popup.on('open', () => {
+      this.route_popup.route_type.blur();
       this.map_handler.overview.set_html(this.overview.html);
       this.get_note_descriptions();
     });
@@ -339,13 +340,7 @@ class Route {
   }
 
   set_enabled = () => {
-    // if (this.get_id() === 'Santiago,Chile-Melbourne,Australia:flying') {
-    //   // could use MultiLineString
-    //   console.log(this.route.value);
-    // }
-    // console.log('set_enabled');
     const enabled_source = this.map_handler.map.getSource(`routes_enabled_${this.route_type.value}`);
-    // const route = (this.route.value.length <= 2) ? this.route.value : interpolateBSpline([this.route.value[0], ...this.route.value.slice(1, -1).filter((value, index, Arr) => index % 5 == 0), this.route.value[this.route.value.length - 1]], 3);
     enabled_source.updateData({ "type": "FeatureCollection", "features": [{ "id": this.id, "type": "Feature", "properties": {}, "geometry": { "type": "MultiLineString", "coordinates": this.route_spline } }] });
 
     const disabled_source = this.map_handler.map.getSource(`routes_disabled_${this.route_type.value}`);
@@ -359,13 +354,6 @@ class Route {
     );
     this.map_handler.map.getSource(`routes_highlighted_${this.route_type.value}`).updateData({ "type": "FeatureCollection", "features": [{ "id": this.id, "type": "Feature", "properties": {}, "geometry": { "type": "MultiLineString", "coordinates": this.route_spline } }] });
     this.highlighted = true;
-
-    // const enabled_source = this.map_handler.map.getSource(`routes_enabled_${this.route_type.value}`);
-    // const disabled_source = this.map_handler.map.getSource(`routes_disabled_${this.route_type.value}`);
-    // if (!this.optimize) {
-    //   this.map_handler.map.setPaintProperty(this.route_layer_id, 'line-color', '#ea58b0');
-    //   this.map_handler.map.setPaintProperty(this.route_arrow_layer_id, 'icon-opacity', 1);
-    // }
   }
 
   unset_highlight = () => {
@@ -409,10 +397,10 @@ class Route {
   };
 
   get_note_descriptions = () => {
-    console.log('get_route_note_descriptions');
     if (this.notes_descriptions_loaded) {
       return;
     }
+    console.log('get_route_note_descriptions');
     Object.values(this.overview.note_description_spans).forEach((html_span) => {
       html_span.span.innerHTML = 'Loading...';
       html_span.process();
