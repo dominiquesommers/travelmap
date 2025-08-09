@@ -151,6 +151,11 @@ class CountryOverview {
     }, 'p', false, this.country.map_handler.view_only);
     const description_cell = this.notes_table.add_cell(row_index, ['activity-description-cell']);
     description_cell.appendChild(this.note_description_spans[note_id].span);
+
+    if (id === undefined) {
+      this.note_description_spans[note_id].double_click(new MouseEvent('dblclick', {}), true);
+    }
+
     const category_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'category']);
     if (emoji !== undefined && !Object.keys(note_icons).includes(category)) {
       note_icons[category] = emoji;
@@ -185,15 +190,19 @@ class CountryOverview {
     delete_icon.addEventListener('click', () => {
       if (this.country.map_handler.view_only) { return; };
       if (confirm('Are you sure you want to delete this country note?')) {
-        const args = {'parameters': {'note_id': note_id}};
-        backend_communication.call_google_function('POST',
+        if (note_id === undefined) {
+          this.notes_table.table.deleteRow(row.rowIndex);
+        } else {
+          const args = {'parameters': {'note_id': note_id}};
+          backend_communication.call_google_function('POST',
               'remove_country_note', args, (data) => {
-          if (data['status'] === 'OK') {
-            this.notes_table.table.deleteRow(row.rowIndex);
-          } else {
-            console.log(data)
-          }
-        });
+                if (data['status'] === 'OK') {
+                  this.notes_table.table.deleteRow(row.rowIndex);
+                } else {
+                  console.log(data)
+                }
+              });
+        }
       }
     });
     delete_icon.innerHTML = '🗑️';

@@ -42,14 +42,14 @@ class HTMLCost {
     this.estimated_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'estimated'), view_only);
     this.estimated_cost_sup = document.createElement('sup');
     this.estimated_cost_sup.innerHTML = '(est.)';
-    this.estimated_cost_sup.style = 'user-select: none;';
+    this.estimated_cost_sup.style = 'user-select: none; cursor: text;';
     this.estimated_cost_sup.classList.add('hidden', 'opacity-50');
     this.actual_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'actual'), view_only);
-    this.actual_cost.span.style = 'margin-left: 2px;';
+    this.actual_cost.span.style = 'margin-left: 2px; cursor: pointer;';
     this.actual_cost.span.classList.add('hidden');
     this.actual_cost_sup = document.createElement('sup');
     this.actual_cost_sup.innerHTML = '✔';
-    this.actual_cost_sup.style = 'user-select: none;';
+    this.actual_cost_sup.style = 'user-select: none; cursor: text;';
     this.actual_cost_sup.classList.add('hidden', 'text-green-600');
     this.span.appendChild(this.estimated_cost.span);
     this.span.appendChild(this.estimated_cost_sup);
@@ -66,12 +66,15 @@ class HTMLCost {
       if (event instanceof PointerEvent) event.preventDefault();
       this.context_menu.style.display = 'block';
       this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
+      this.context_menu.style.top = `0px`;
+      this.context_menu.style.left = `0px`;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       const menuWidth = this.mark_as_paid_button.offsetWidth;
       const menuHeight = this.mark_as_paid_button.offsetHeight;
-      let topPosition = event.clientY;
-      let leftPosition = event.clientX;
+      const rect = this.span.getBoundingClientRect();
+      let leftPosition = rect.left;
+      let topPosition = rect.top + rect.height;
       if (topPosition + menuHeight > viewportHeight) {
         topPosition = viewportHeight - menuHeight - 5;
       }
@@ -124,6 +127,7 @@ class HTMLNumber {
     this.span = document.createElement('span');
     this.span.style = 'padding: 0px 2px 0px 2px';
     this.span.inputMode = 'numeric';
+    this.span.style = 'user-select: none; cursor: pointer;';
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
     this.change_callback = change_callback;
     this.span.addEventListener('keypress', (event) => {
@@ -134,10 +138,11 @@ class HTMLNumber {
       }
     });
 
-    this.span.addEventListener('dblclick', (event) => {
+    this.double_click = (event) => {
       if (this.span.contentEditable === 'true') {
         return;
       }
+      this.span.style = 'user-select: text; cursor: text;';
       event.preventDefault();
       event.stopPropagation();
       if (view_only) { return; }
@@ -148,11 +153,16 @@ class HTMLNumber {
       range.selectNodeContents(this.span);
       selection.removeAllRanges();
       selection.addRange(range);
+    }
+
+    this.span.addEventListener('dblclick', (event) => {
+      this.double_click(event);
     });
 
     this.span.addEventListener('blur', (event) => {
       this.span.innerHTML = Number(this.span.innerHTML);
       this.span.contentEditable = false;
+      this.span.style = 'user-select: none; cursor: pointer;';
       this.change_callback(Number(this.span.innerHTML));
     });
     ['copy', 'cut', 'paste'].forEach((event) => {
@@ -166,7 +176,7 @@ class HTMLText {
     this.span = document.createElement(sp);
     this.span.contentEditable = false;
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
-    this.span.style = 'width: 100%; white-space: initial; word-wrap: break-word; padding: 3px; -webkit-user-select: none;'
+    this.span.style = 'width: 100%; white-space: initial; word-wrap: break-word; padding: 3px;' // -webkit-user-select: none;'
     this.change_callback = change_callback;
 
     if (enter_enter) {
@@ -184,7 +194,7 @@ class HTMLText {
       event.stopPropagation();
     });
 
-    this.span.addEventListener('dblclick', (event) => {
+    this.double_click = (event, select_all=false) => {
       if (this.span.contentEditable === 'true') {
         return;
       }
@@ -199,9 +209,15 @@ class HTMLText {
       const range = document.createRange();
       const selection = window.getSelection();
       range.selectNodeContents(this.span);
-      range.collapse(false);
+      if (!select_all) {
+        range.collapse(false);
+      }
       selection.removeAllRanges();
       selection.addRange(range);
+    }
+
+    this.span.addEventListener('dblclick', (event) => {
+      this.double_click(event);
     });
 
 
