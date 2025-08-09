@@ -38,7 +38,7 @@ class HTMLCost {
     this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
     this.mark_as_paid_button.classList.add('mark-as-paid');
     this.span = document.createElement('span');
-    this.span.appendChild(this.context_menu);
+    document.getElementById('mark-as-paid-buttons').appendChild(this.context_menu);
     this.estimated_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'estimated'), view_only);
     this.estimated_cost_sup = document.createElement('sup');
     this.estimated_cost_sup.innerHTML = '(est.)'
