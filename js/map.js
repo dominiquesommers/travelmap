@@ -234,7 +234,7 @@ class MapHandler {
                actual_costs=undefined, paids=undefined, activities=[], place_notes=[]) => {
     if (place_id === undefined) {
       const args = { 'parameters': {'name': name, 'country': (country instanceof Country) ? country.name : country,
-          'lat': coordinates.lat, 'lng': coordinates.lng , 'season_id': season?.id}};
+          'lat': coordinates.lat, 'lng': coordinates.lng , 'season_id': season?.id, 'trip_id': this.trip_id}};
       backend_communication.call_google_function('POST',
           'add_place', args, (data) => {
         console.log(data);
@@ -303,7 +303,7 @@ class MapHandler {
     if (route_id === undefined) {
       const args = { 'parameters': {'source_id': source_id, 'destination_id': destination_id, 'route_type': route_type,
                                                      'distance': distance, 'duration': duration, 'estimated_cost': estimated_cost,
-                                                     'actual_cost': actual_cost, '': paid, 'nights': nights, 'route': route} };
+                                                     'actual_cost': actual_cost, '': paid, 'nights': nights, 'route': route, 'trip_id': this.trip_id} };
       backend_communication.call_google_function('POST',
         'add_route', args, (data) => {
         if (data['status'] === 'OK') {

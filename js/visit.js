@@ -60,7 +60,7 @@ class Place {
 
   add_visit = (visit_id, nights, included, callback=(new_visit)=>{}) => {
     if (visit_id === undefined) {
-      const args = { 'parameters': {'place': this.id, 'nights': nights, 'included': included } };
+      const args = { 'parameters': {'place': this.id, 'nights': nights, 'included': included, 'plan_id': this.map_handler.plan_id } };
       backend_communication.call_google_function('POST',
                 'add_visit', args, (data) => {
         if (data['status'] === 'OK') {
@@ -213,7 +213,8 @@ class Visit {
       const priority = (this._outgoing_edges.length > 0) ? Math.max(...this._outgoing_edges.value.map((edge) => edge.priority)) + 1 : 0;
       console.log('priority');
       console.log(priority);
-      const args = { 'parameters': {'source_visit_id': this.id, 'destination_visit_id': destination.id, 'route_id': route.id, 'priority': priority} };
+      const args = { 'parameters': {'source_visit_id': this.id, 'destination_visit_id': destination.id,
+          'route_id': route.id, 'priority': priority, 'plan_id': this.place.map_handler.plan_id} };
       backend_communication.call_google_function('POST',
                 'add_edge', args, (data) => {
         if (data['status'] === 'OK') {

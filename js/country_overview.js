@@ -128,7 +128,7 @@ class CountryOverview {
         const args = {'parameters': {'country_id': this.country.id, 'description': value,
             'category': category_select.value, 'estimated_cost': Number(cost_span.estimated_cost.span.innerHTML),
             'actual_cost': Number(cost_span.actual_cost.span.innerHTML), 'paid': cost_span.is_paid,
-            'included': checkbox.checked}};
+            'included': checkbox.checked, 'trip_id': this.country.map_handler.trip_id}};
         backend_communication.call_google_function('POST',
             'add_country_note', args, (data) => {
           if (data['status'] === 'OK') {

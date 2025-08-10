@@ -356,7 +356,7 @@ class PlaceOverview {
         console.log('NEW and edited.')
         const args = {'parameters': {'place_id': this.place.id, 'description': value, 'category': category_select.value,
             'estimated_cost': Number(cost_span.estimated_cost.span.innerHTML), 'actual_cost': Number(cost_span.actual_cost.span.innerHTML),
-            'paid': cost_span.is_paid, 'included': checkbox.checked}};
+            'paid': cost_span.is_paid, 'included': checkbox.checked, 'trip_id': this.place.map_handler.trip_id}};
         backend_communication.call_google_function('POST',
             'add_activity', args, (data) => {
           if (data['status'] === 'OK') {
@@ -505,7 +505,8 @@ class PlaceOverview {
         console.log('NEW and edited.')
         const args = {'parameters': {'place_id': this.place.id, 'description': value,
             'category': category_select.value, 'estimated_cost': Number(cost_span.estimated_cost.span.innerHTML),
-            'actual_cost': Number(cost_span.actual_cost.span.innerHTML), 'paid': cost_span.is_paid, 'included': checkbox.checked}};
+            'actual_cost': Number(cost_span.actual_cost.span.innerHTML), 'paid': cost_span.is_paid, 'included': checkbox.checked,
+            'trip_id': this.place.map_handler.trip_id}};
         backend_communication.call_google_function('POST',
             'add_place_note', args, (data) => {
           if (data['status'] === 'OK') {

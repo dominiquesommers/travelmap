@@ -108,7 +108,7 @@ class RouteOverview {
     this.note_description_spans[note_id] = new HTMLText(description, ['activity-description'], (value, old_value) => {
       if (note_id === undefined && old_value === 'Edit description to save') {
         console.log('NEW and edited.')
-        const args = {'parameters': {'route_id': this.route.id, 'description': value}};
+        const args = {'parameters': {'route_id': this.route.id, 'description': value, 'trip_id': this.route.map_handler.trip_id}};
         backend_communication.call_google_function('POST',
             'add_route_note', args, (data) => {
           if (data['status'] === 'OK') {
