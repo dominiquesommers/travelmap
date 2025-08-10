@@ -33,11 +33,8 @@ class PlaceOverview {
         console.log(data);
         if (data['status'] !== 'OK') console.log(data);
       });
-      // backend_communication.fetch('/travel/update_place/', args, (data) => {
-      //   if (data['status'] !== 'OK') console.log(data);
-      // });
     }, 'span', true, this.place.map_handler.view_only).span;
-    place_name.style = 'padding: 0px';
+    place_name.style.padding = '0px';
     this.title.appendChild(place_name);
     // const country_span = document.createElement('span');
     // this.title.appendChild(country_span);

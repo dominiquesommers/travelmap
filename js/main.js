@@ -16,7 +16,6 @@ class TravelApp {
   map_loaded = () => {
     console.log(this.map_handler.plan_id);
     console.log(this.map_handler.trip_id);
-    // console.log(lsls)
     backend_communication.call_google_function('GET', 'load_data',
         {'trip_id': this.map_handler.trip_id, 'plan_id': this.map_handler.plan_id},
     this.data_loaded);

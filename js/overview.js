@@ -23,15 +23,17 @@ class Overview {
 
     this.title = document.createElement('h1');
     this.html.appendChild(this.title);
-    const set_overview_title = () => {
-      if (this.maphandler.trip_id in this.maphandler.trips.value && this.maphandler.plan_id in this.maphandler.trips.value[this.maphandler.trip_id]['plans']) {
-        this.title.innerHTML = `Overview ${this.maphandler.trips.value[this.maphandler.trip_id]['name']} - ${this.maphandler.trips.value[this.maphandler.trip_id]['plans'][this.maphandler.plan_id]['name']}`;
-      } else {
-        this.title.innerHTML = 'Overview';
-      }
-    }
-    set_overview_title();
-    this.maphandler.trips.subscribe(set_overview_title);
+    this.set_overview_title();
+    this.maphandler.trips.subscribe(this.set_overview_title);
+
+    this.plan_note = document.createElement('div');
+    this.html.appendChild(this.plan_note);
+    this.set_plan_note();
+    this.maphandler.trips.subscribe(this.set_plan_note);
+
+    const divider = document.createElement('span');
+    divider.innerHTML = '<hr>';
+    this.html.appendChild(divider);
 
     this.dates = document.createElement('div');
     this.html.appendChild(this.dates);
@@ -62,13 +64,6 @@ class Overview {
         }
       });
 
-      // backend_communication.fetch('/travel/set_start_date/',{'parameters': {'start_date': this.start_date.value}}, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     this.maphandler.graph.update_dates();
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
     };
     const date_span3 = document.createElement('span');
     this.dates.appendChild(date_span3);
@@ -76,13 +71,6 @@ class Overview {
     this.end_date = document.createElement('span');
     this.dates.appendChild(this.end_date);
     this.end_date.innerHTML = '?';
-
-    // const divider1 = document.createElement('span');
-    // divider1.innerHTML = '<hr>';
-    // this.html.appendChild(divider1);
-
-    // this.route_span = document.createElement('span');
-    // this.html.appendChild(this.route_span);
 
     const divider2 = document.createElement('span');
     divider2.innerHTML = '<hr>';
@@ -101,6 +89,53 @@ class Overview {
     const divider4 = document.createElement('span');
     divider4.innerHTML = '<hr>';
     this.html.appendChild(divider4);
+  }
+
+  set_plan_note = () => {
+    this.plan_note.innerHTML = '';
+    if (this.maphandler.trip_id in this.maphandler.trips.value && this.maphandler.plan_id in this.maphandler.trips.value[this.maphandler.trip_id]['plans']) {
+      let note = this.maphandler.trips.value[this.maphandler.trip_id]['plans'][this.maphandler.plan_id]['note'];
+      if (note === null) {
+        note = 'Edit to add note to this trip plan.';
+      }
+      const note_span = new HTMLText(note, [], (value) => {
+        const args = {'parameters': {'plan_id': this.maphandler.plan_id, 'column': `note`, 'value': value}};
+        backend_communication.call_google_function('POST',
+            'update_plan', args, (data) => {
+          if (data['status'] !== 'OK') console.log(data);
+        });
+      }, 'p', false, this.maphandler.view_only).span;
+      this.plan_note.appendChild(note_span);
+    }
+  }
+
+  set_overview_title = () => {
+    this.title.innerHTML = 'Overview ';
+    if (this.maphandler.trip_id in this.maphandler.trips.value && this.maphandler.plan_id in this.maphandler.trips.value[this.maphandler.trip_id]['plans']) {
+      const trip_name = this.maphandler.trips.value[this.maphandler.trip_id]['name'];
+      const plan_name = this.maphandler.trips.value[this.maphandler.trip_id]['plans'][this.maphandler.plan_id]['name'];
+      const trip_name_span = new HTMLText(trip_name, [], (value) => {
+        const args = {'parameters': {'trip_id': this.maphandler.trip_id, 'column': `name`, 'value': value}};
+        backend_communication.call_google_function('POST',
+            'update_trip', args, (data) => {
+          if (data['status'] !== 'OK') console.log(data);
+        });
+      }, 'span', true, this.maphandler.view_only).span;
+      // trip_name_span.style.padding = '0px';
+      this.title.appendChild(trip_name_span);
+      const sep_span = document.createElement('span');
+      sep_span.innerHTML = ' - ';
+      this.title.appendChild(sep_span);
+      const plan_name_span = new HTMLText(plan_name, [], (value) => {
+        const args = {'parameters': {'plan_id': this.maphandler.plan_id, 'column': `name`, 'value': value}};
+        backend_communication.call_google_function('POST',
+            'update_plan', args, (data) => {
+          if (data['status'] !== 'OK') console.log(data);
+        });
+      }, 'span', true, this.maphandler.view_only).span;
+      // plan_name_span.style.padding = '0px';
+      this.title.appendChild(plan_name_span);
+    }
   }
 
   update_route = (source_visit) => {

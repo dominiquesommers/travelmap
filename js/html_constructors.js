@@ -176,17 +176,15 @@ class HTMLText {
     this.span = document.createElement(sp);
     this.span.contentEditable = false;
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
-    this.span.style = 'width: 100%; white-space: initial; word-wrap: break-word; padding: 3px;' // -webkit-user-select: none;'
+    this.span.style = 'width: 100%; white-space: initial; word-wrap: break-word; padding: 0px 2px 0px 0px; cursor: pointer;' // -webkit-user-select: none;'
     this.change_callback = change_callback;
 
-    if (enter_enter) {
-      this.span.addEventListener('keypress', (event) => {
-      if (event.key === 'Enter') {
+    this.span.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter' && (enter_enter || event.shiftKey)) {
         this.span.contentEditable = false;
         event.preventDefault();
       }
     });
-    }
 
     this.span.addEventListener('contextmenu', (event) => {
       console.log('TODO implement mark as done button.');
@@ -202,6 +200,7 @@ class HTMLText {
       event.stopPropagation();
       if (view_only) { return; }
       this.span.contentEditable = true;
+      this.span.style.cursor = 'text';
       if (document.activeElement !== this.span) {
         this.span.innerHTML = this.value;
       }
@@ -223,6 +222,7 @@ class HTMLText {
 
     this.span.addEventListener('blur', (event) => {
       this.span.contentEditable = false;
+      this.span.style.cursor = 'pointer';
       if (this.value !== this.span.innerHTML) {
         this.change_callback(this.span.innerHTML, this.value);
       }
