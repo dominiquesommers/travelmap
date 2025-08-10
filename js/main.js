@@ -7,17 +7,25 @@ class TravelApp {
   constructor(access_token) {
     const url_parameters = new URLSearchParams(window.location.search);
     const view_only = url_parameters.get('mode') !== 'edit';
+    const trip_id = Number(url_parameters.get('trip')) || 1;
+    const plan_id = Number(url_parameters.get('plan')) || 1;
 
-    this.map_handler = new MapHandler('map', access_token, this.map_loaded, view_only);
+    this.map_handler = new MapHandler('map', access_token, trip_id, plan_id, this.map_loaded, view_only);
   }
 
   map_loaded = () => {
-    backend_communication.call_google_function('GET', 'load_data', {}, this.data_loaded);
+    console.log(this.map_handler.plan_id);
+    console.log(this.map_handler.trip_id);
+    // console.log(lsls)
+    backend_communication.call_google_function('GET', 'load_data',
+        {'trip_id': this.map_handler.trip_id, 'plan_id': this.map_handler.plan_id},
+    this.data_loaded);
     // backend_communication.fetch('/travel/load_data/',{}, this.data_loaded );
     window.onbeforeunload = () => {
       const center = this.map_handler.map.getCenter();
       backend_communication.call_google_function('POST',
-          'set_last', {'parameters': {'lat': center.lng, 'lng': center.lat, 'zoom': this.map_handler.map.getZoom()}}, () => {} );
+          'set_last', {'parameters': {'lat': center.lng, 'lng': center.lat,
+              'zoom': this.map_handler.map.getZoom(), 'plan_id': this.map_handler.plan_id}}, () => {} );
       // backend_communication.fetch('/travel/set_last/',{'parameters': {'lat': center.lng, 'lng': center.lat, 'zoom': this.map_handler.map.getZoom()}}, () => {} );
     }
   }
