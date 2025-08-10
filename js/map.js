@@ -3,6 +3,7 @@ class MapHandler {
     mapboxgl.accessToken = access_token;
     this.trip_id = trip_id;
     this.plan_id = plan_id;
+    this.trips = new Observable({});
     this.container = container;
     this.view_only = view_only;
     this.overview = new Overview(this);

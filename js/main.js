@@ -25,7 +25,7 @@ class TravelApp {
       const center = this.map_handler.map.getCenter();
       backend_communication.call_google_function('POST',
           'set_last', {'parameters': {'lat': center.lng, 'lng': center.lat,
-              'zoom': this.map_handler.map.getZoom(), 'plan_id': this.map_handler.plan_id}}, () => {} );
+              'zoom': this.map_handler.map.getZoom(), 'plan_id': this.map_handler.plan_id}}, () => {}, true );
       // backend_communication.fetch('/travel/set_last/',{'parameters': {'lat': center.lng, 'lng': center.lat, 'zoom': this.map_handler.map.getZoom()}}, () => {} );
     }
   }
@@ -34,6 +34,9 @@ class TravelApp {
     this.map_handler.graph.initializing_data = true;
 
     console.log('Response from server:', data);
+    console.log(data['trips'][1]['plans'][1]);
+    this.map_handler.trips.value = data['trips'];
+    data['general'] = data['trips'][this.map_handler.trip_id]['plans'][this.map_handler.plan_id];
     this.map_handler.overview.start_date.value = (new Date(data['general']['start_date'])).toISOString().split('T')[0];
     this.map_handler.map.jumpTo({center: [data['general']['lat'], data['general']['lng']]});
     this.map_handler.map.setZoom(data['general']['zoom']);

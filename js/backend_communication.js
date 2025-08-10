@@ -14,7 +14,7 @@ class Communication {
     return params;
   }
 
-  call_google_function = async (http_method, backend_method, args, callback) => {
+  call_google_function = async (http_method, backend_method, args, callback, keepalive=false) => {
     let params = new URLSearchParams({
         backend_method: backend_method
     });
@@ -31,7 +31,8 @@ class Communication {
         response = await fetch(`${this.GCF_URL}?${params.toString()}`, {
             method: 'POST',
             headers: {  'Content-Type': 'application/json' },
-            body: JSON.stringify(args)
+            body: JSON.stringify(args),
+            keepalive: keepalive
         });
       }
       if (!response.ok) {

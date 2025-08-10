@@ -23,7 +23,15 @@ class Overview {
 
     this.title = document.createElement('h1');
     this.html.appendChild(this.title);
-    this.title.innerHTML = 'Overview';
+    const set_overview_title = () => {
+      if (this.maphandler.trip_id in this.maphandler.trips.value && this.maphandler.plan_id in this.maphandler.trips.value[this.maphandler.trip_id]['plans']) {
+        this.title.innerHTML = `Overview ${this.maphandler.trips.value[this.maphandler.trip_id]['name']} - ${this.maphandler.trips.value[this.maphandler.trip_id]['plans'][this.maphandler.plan_id]['name']}`;
+      } else {
+        this.title.innerHTML = 'Overview';
+      }
+    }
+    set_overview_title();
+    this.maphandler.trips.subscribe(set_overview_title);
 
     this.dates = document.createElement('div');
     this.html.appendChild(this.dates);
@@ -45,7 +53,8 @@ class Overview {
     this.start_date.value = undefined;
     this.start_date.onchange = () => {
       backend_communication.call_google_function('POST',
-          'set_start_date', {'parameters': {'start_date': this.start_date.value}}, (data) => {
+          'set_start_date', {'parameters': {'start_date': this.start_date.value,
+              'plan_id': this.maphandler.plan_id}}, (data) => {
         if (data['status'] === 'OK') {
           this.maphandler.graph.update_dates();
         } else {
