@@ -95,7 +95,7 @@ class Overview {
     this.plan_note.innerHTML = '';
     if (this.maphandler.trip_id in this.maphandler.trips.value && this.maphandler.plan_id in this.maphandler.trips.value[this.maphandler.trip_id]['plans']) {
       let note = this.maphandler.trips.value[this.maphandler.trip_id]['plans'][this.maphandler.plan_id]['note'];
-      if (note === null) {
+      if (note === null || note === '') {
         note = 'Edit to add note to this trip plan.';
       }
       const note_span = new HTMLText(note, [], (value) => {
