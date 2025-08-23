@@ -139,9 +139,9 @@ class VisitPopup {
     }, this.visit.place.map_handler.view_only).select;
     rent_until_select.options[0].disabled = true;
 
-    if (until_visit !== undefined && Array.from(rent_until_select.options).some((option) => option.value === until_visit.id)) {
+    if (until_visit !== undefined && Array.from(rent_until_select.options).some((option) => option.value === until_visit.short_id)) {
       const base_route = this.visit.next_edge.value.route;
-      rent_until_select.value = until_visit.id;
+      rent_until_select.value = until_visit.short_id;
       // Update and lock information through the 'driving' edges until the until_visit is reached.
       let next_visit = this.visit;
       while (next_visit !== until_visit) {
@@ -151,12 +151,12 @@ class VisitPopup {
         next_visit.included_in_rent = true;
         const departure_route = next_visit.next_edge.value.route;
         const acco_string = `${(this.visit.next_edge.value.includes_accommodation) ? 'In' : 'Ex'}cludes accommodation.`
-        next_visit.popup.previous_edge_rent.innerHTML = `Rent from: ${this.visit.place.name}_${this.visit.id}.<br>${acco_string}`
+        next_visit.popup.previous_edge_rent.innerHTML = `Rent from: ${this.visit.place.name}_${this.visit.short_id}.<br>${acco_string}`
         if (next_visit === until_visit) {
           // next_visit.
         } else {
           departure_route.estimated_cost.value = base_route.estimated_cost.value;
-          next_visit.popup.next_edge_rent.innerHTML = `Rent until: ${until_visit.place.name}_${until_visit.id}.<br>${acco_string}`
+          next_visit.popup.next_edge_rent.innerHTML = `Rent until: ${until_visit.place.name}_${until_visit.short_id}.<br>${acco_string}`
         }
       }
     }
@@ -233,7 +233,7 @@ class VisitPopup {
   }
 
   adjacent_visit_string = (visit) => {
-    return `${visit.place.name}<sub>${visit.id}</sub> (${visit.nights.value})`
+    return `${visit.place.name}<sub>${visit.short_id}</sub> (${visit.nights.value})`
   }
 
   update_outgoing_edge_information = (a=undefined, b=undefined) => {
@@ -444,7 +444,7 @@ class VisitPopup {
     const current_visit_cell = table_constructor.add_cell(2, ['current-visit']);
     const current_visit_name_span = document.createElement('span');
     current_visit_cell.appendChild(current_visit_name_span);
-    current_visit_name_span.innerHTML = `${this.visit.place.name}<sub>${this.visit.id}</sub>`;
+    current_visit_name_span.innerHTML = `${this.visit.place.name}<sub>${this.visit.short_id}</sub>`;
     // this.decrement_nights = document.createElement('span');
     current_visit_cell.appendChild(this.decrement_nights);
     this.decrement_nights.innerHTML = '<sup>-</sup>';

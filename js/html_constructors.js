@@ -219,7 +219,6 @@ class HTMLText {
       this.double_click(event);
     });
 
-
     this.span.addEventListener('blur', (event) => {
       this.span.contentEditable = false;
       this.span.style.cursor = 'pointer';
@@ -228,6 +227,7 @@ class HTMLText {
       }
       this.process();
     });
+
     this.value = inner;
     this.span.innerHTML = inner;
     const expression = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;

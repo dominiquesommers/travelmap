@@ -70,8 +70,8 @@ class Place {
         }
       });
     } else {
-      // console.log(`add visit ${visit_id}`)
-      const new_visit = new Visit(visit_id, this, nights, included);
+      const short_id = (this.visits.value.length === 0) ? 1 : Math.max(...this.visits.value.map(visit => visit.short_id)) + 1;
+      const new_visit = new Visit(visit_id, short_id, this, nights, included);
       this.visits.value = [...this.visits.value, new_visit];
       return new_visit;
     }
@@ -140,8 +140,9 @@ class Place {
 
 
 class Visit {
-  constructor(id, place, nights, included=true) {
+  constructor(id, short_id, place, nights, included=true) {
     this.id = id;
+    this.short_id = short_id;
     this.place = place;
     this.nights = new Observable(nights, this.set_nights);
     this.nights.subscribe(this.nights_updated)

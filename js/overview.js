@@ -126,15 +126,20 @@ class Overview {
       const sep_span = document.createElement('span');
       sep_span.innerHTML = ' - ';
       this.title.appendChild(sep_span);
-      const plan_name_span = new HTMLText(plan_name, [], (value) => {
+      const plan_name_changed = (value, old_value) => {
         const args = {'parameters': {'plan_id': this.maphandler.plan_id, 'column': `name`, 'value': value}};
         backend_communication.call_google_function('POST',
             'update_plan', args, (data) => {
-          if (data['status'] !== 'OK') console.log(data);
+          if (data['error'] === 'unique_plan_name violated' || data['error']?.includes('duplicate key value violates unique constraint')) {
+            alert('Plan name already exists for this trip, choose another one.');
+            plan_name_span.span.innerHTML = old_value;
+            plan_name_span.process();
+          }
         });
-      }, 'span', true, this.maphandler.view_only).span;
+      };
+      const plan_name_span = new HTMLText(plan_name, [], plan_name_changed, 'span', true, this.maphandler.view_only);
       // plan_name_span.style.padding = '0px';
-      this.title.appendChild(plan_name_span);
+      this.title.appendChild(plan_name_span.span);
     }
   }
 
