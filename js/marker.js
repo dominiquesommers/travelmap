@@ -110,7 +110,7 @@ class VisitPopup {
       until_destination = until_destination.next_edge.value.destination;
       const depart_route_type = until_destination.next_edge.value?.route.route_type.value;
       if (arrive_route_type === 'driving' && arrive_route_type !== depart_route_type) {
-        options.push([until_destination.id, `${until_destination.place.name}_${until_destination.id}`]);
+        options.push([until_destination.id, `${until_destination.place.name}_${until_destination.short_id}`]);
         last_option = until_destination;
       }
     }
@@ -139,9 +139,9 @@ class VisitPopup {
     }, this.visit.place.map_handler.view_only).select;
     rent_until_select.options[0].disabled = true;
 
-    if (until_visit !== undefined && Array.from(rent_until_select.options).some((option) => option.value === until_visit.short_id)) {
+    if (until_visit !== undefined && Array.from(rent_until_select.options).some((option) => option.value === until_visit.id)) {
       const base_route = this.visit.next_edge.value.route;
-      rent_until_select.value = until_visit.short_id;
+      rent_until_select.value = until_visit.id;
       // Update and lock information through the 'driving' edges until the until_visit is reached.
       let next_visit = this.visit;
       while (next_visit !== until_visit) {
