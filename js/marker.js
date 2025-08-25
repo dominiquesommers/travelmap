@@ -237,26 +237,12 @@ class VisitPopup {
   }
 
   update_outgoing_edge_information = (a=undefined, b=undefined) => {
-    this.sortable_list.reset();
+    this.next_edge_list.reset();
     this.visit._outgoing_edges.value.forEach((edge) => {
-      const option_html = document.createElement('div')
-      const visit_html = document.createElement('span')
-      option_html.appendChild(visit_html);
-      visit_html.innerHTML = `${this.adjacent_visit_string(edge.destination)}`
+      const option_span = this.next_edge_list.add_option(edge.get_id(), `${this.adjacent_visit_string(edge.destination)}`, edge);
       if (!edge.destination.included.value) {
-        option_html.style = `background-color: lightgrey;`
+        option_span.classList.add('opacity-04');
       }
-      const delete_span = document.createElement('span');
-      option_html.appendChild(delete_span);
-      delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-      delete_span.classList.add('pointer');
-      delete_span.addEventListener('click', (event) => {
-        if (confirm('Are you sure you want to delete this outgoing edge?')) {
-          edge.source.remove_outgoing_edge(edge);
-        }
-      });
-
-      this.sortable_list.add_option(option_html, edge);
     });
   }
 
@@ -521,22 +507,77 @@ class VisitPopup {
     next_edge_div.classList.add('custom-select');
     next_edge_div.appendChild(this.next_visit);
     this.next_visit.classList.add('pointer');
-    const edit = document.createElement('span');
-    next_edge_div.appendChild(edit)
-    edit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12" x="0" y="0" viewBox="0 0 492.493 492" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M304.14 82.473 33.165 353.469a10.799 10.799 0 0 0-2.816 4.949L.313 478.973a10.716 10.716 0 0 0 2.816 10.136 10.675 10.675 0 0 0 7.527 3.114 10.6 10.6 0 0 0 2.582-.32l120.555-30.04a10.655 10.655 0 0 0 4.95-2.812l271-270.977zM476.875 45.523 446.711 15.36c-20.16-20.16-55.297-20.14-75.434 0l-36.949 36.95 105.598 105.597 36.949-36.949c10.07-10.066 15.617-23.465 15.617-37.715s-5.547-27.648-15.617-37.719zm0 0" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    edit.classList.add('edit');
 
-    this.sortable_list = new SortableHTMLList(edit, this.visit.change_order_outgoing_edges, this.visit.place.map_handler.view_only);
-    next_edge_div.appendChild(this.sortable_list.container);
-    this.update_outgoing_edges(this.visit._outgoing_edges.value);
-    const add_edge_div = document.createElement('div');
-    this.sortable_list.container.appendChild(add_edge_div);
-    add_edge_div.classList.add('horizontal-center');
+    const on_open = () => {
+      add_edge_span.classList.remove('hidden');
+    }
+    const on_close = () => {
+      add_edge_span.classList.add('hidden');
+    }
+
+    const order_change_callback = (selected_edge_option, new_order) => {
+      const new_index = new_order.map(element => element[0]).indexOf(selected_edge_option[0]);
+      const priority = (new_index === 0) ? new_order[1][2].priority - 1 :
+            (new_index === (new_order.length - 1)) ? new_order[new_order.length - 2][2].priority + 1 :
+                (new_order[new_index - 1][2].priority + new_order[new_index + 1][2].priority) / 2;
+      console.log('prio', priority);
+      selected_edge_option[2].priority = priority;
+      const args = { 'parameters': {'source_visit_id': selected_edge_option[2].source.id,
+          'destination_visit_id': selected_edge_option[2].destination.id,
+          'route_id': selected_edge_option[2].route.id, 'column': 'priority', 'value': priority} };
+      backend_communication.call_google_function('POST',
+                'update_edge', args, (data) => {
+        if (data['status'] === 'OK') {
+          this.visit._outgoing_edges.value = new_order.map(element => element[2]);
+        } else {
+          console.log(data);
+        }
+      });
+    }
+    const on_select = (selected_edge_option) => {
+      const order = Array.from(this.next_edge_list.list.children).map(item =>
+                  [item.getAttribute('data-value'), item.textvalue, this.next_edge_list.options[item.getAttribute('data-value')]]);
+      const index = order.map(element => element[0]).indexOf(selected_edge_option[0]);
+      if (selected_edge_option[0] !== order[0][0]) {
+        const new_order = [selected_edge_option, ...order.slice(0, index), ...order.slice(index + 1)];
+        order_change_callback(selected_edge_option, new_order);
+      }
+      on_close();
+    }
+
+    const on_delete_callback = ([id, text, edge]) => {
+      if (confirm('Are you sure you want to delete this outgoing edge?')) {
+        edge.source.remove_outgoing_edge(edge);
+      }
+    }
+    this.next_edge_list = new HTMLSelectableText('', [], on_open, on_close, order_change_callback, on_select, on_delete_callback,
+        true, [], ()=>{}, 'span', true, this.visit.place.map_handler.view_only);
+    this.next_visit = this.next_edge_list.span;
+    this.next_visit.classList.add('left-span');
+    next_edge_div.appendChild(this.next_visit);
     const add_edge_span = document.createElement('span');
-    add_edge_div.appendChild(add_edge_span);
-    add_edge_span.classList.add('pointer');
-    add_edge_span.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M20 29H6a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3zM6 11a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V12a1 1 0 0 0-1-1zM10 8a1 1 0 0 1-1-1V6a3 3 0 0 1 3-3h1a1 1 0 0 1 0 2h-1a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1zM26 23h-1a1 1 0 0 1 0-2h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1-3 3zM28 8a1 1 0 0 1-1-1V6a1 1 0 0 0-1-1h-1a1 1 0 0 1 0-2h1a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1zM28 16a1 1 0 0 1-1-1v-4a1 1 0 0 1 2 0v4a1 1 0 0 1-1 1zM21 5h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M16 20h-6a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M13 23a1 1 0 0 1-1-1v-6a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    next_edge_div.classList.add('left-right-aligned');
+    next_edge_div.appendChild(add_edge_span);
+    add_edge_span.classList.add('pointer', 'right-span', 'hidden');
+    add_edge_span.innerHTML = '➕';
     add_edge_span.addEventListener('click', this.add_edge);
+
+    // const edit = document.createElement('span');
+    // next_edge_div.appendChild(edit)
+    // edit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12" x="0" y="0" viewBox="0 0 492.493 492" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M304.14 82.473 33.165 353.469a10.799 10.799 0 0 0-2.816 4.949L.313 478.973a10.716 10.716 0 0 0 2.816 10.136 10.675 10.675 0 0 0 7.527 3.114 10.6 10.6 0 0 0 2.582-.32l120.555-30.04a10.655 10.655 0 0 0 4.95-2.812l271-270.977zM476.875 45.523 446.711 15.36c-20.16-20.16-55.297-20.14-75.434 0l-36.949 36.95 105.598 105.597 36.949-36.949c10.07-10.066 15.617-23.465 15.617-37.715s-5.547-27.648-15.617-37.719zm0 0" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    // edit.classList.add('edit');
+    //
+    // this.sortable_list = new SortableHTMLList(edit, this.visit.change_order_outgoing_edges, this.visit.place.map_handler.view_only);
+    // next_edge_div.appendChild(this.sortable_list.container);
+    // this.update_outgoing_edges(this.visit._outgoing_edges.value);
+    // const add_edge_div = document.createElement('div');
+    // this.sortable_list.container.appendChild(add_edge_div);
+    // add_edge_div.classList.add('horizontal-center');
+    // const add_edge_span = document.createElement('span');
+    // add_edge_div.appendChild(add_edge_span);
+    // add_edge_span.classList.add('pointer');
+    // add_edge_span.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M20 29H6a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3zM6 11a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V12a1 1 0 0 0-1-1zM10 8a1 1 0 0 1-1-1V6a3 3 0 0 1 3-3h1a1 1 0 0 1 0 2h-1a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1zM26 23h-1a1 1 0 0 1 0-2h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1-3 3zM28 8a1 1 0 0 1-1-1V6a1 1 0 0 0-1-1h-1a1 1 0 0 1 0-2h1a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1zM28 16a1 1 0 0 1-1-1v-4a1 1 0 0 1 2 0v4a1 1 0 0 1-1 1zM21 5h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M16 20h-6a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M13 23a1 1 0 0 1-1-1v-6a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    // add_edge_span.addEventListener('click', this.add_edge);
 
     return table_constructor.table;
   }

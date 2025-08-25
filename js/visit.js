@@ -79,8 +79,7 @@ class Place {
 
   delete_visit = (visit_to_remove, callback=() => {}) => {
     const args = { 'parameters': {'visit_id': visit_to_remove.id} };
-    backend_communication.call_google_function('POST',
-                'remove_visit', args, (data) => {
+    backend_communication.call_google_function('POST', 'remove_visit', args, (data) => {
       if (data['status'] === 'OK') {
         const index = this.visits.value.indexOf(visit_to_remove);
         this.visits.value = [...this.visits.value.slice(0, index), ...this.visits.value.slice(index + 1)];
@@ -252,15 +251,8 @@ class Visit {
           console.log(data);
         }
       });
-      // backend_communication.fetch('/travel/remove_edge/', args, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     this.remove_outgoing_edge(edge, false);
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
     } else {
-      console.log('remove edgeeeee')
+      edge.route.set_disabled();
       const index = this._outgoing_edges.value.indexOf(edge);
       this._outgoing_edges.value = [...this._outgoing_edges.value.slice(0, index), ...this._outgoing_edges.value.slice(index + 1)];
     }

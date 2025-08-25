@@ -37,8 +37,8 @@ class HTMLCost {
     this.is_paid = paid;
     this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
     this.mark_as_paid_button.classList.add('mark-as-paid');
-    this.span = document.createElement('span');
     document.getElementById('mark-as-paid-buttons').appendChild(this.context_menu);
+    this.span = document.createElement('span');
     this.estimated_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'estimated'), view_only);
     this.estimated_cost_sup = document.createElement('sup');
     this.estimated_cost_sup.innerHTML = '(est.)';
@@ -186,12 +186,6 @@ class HTMLText {
       }
     });
 
-    this.span.addEventListener('contextmenu', (event) => {
-      console.log('TODO implement mark as done button.');
-      event.preventDefault();
-      event.stopPropagation();
-    });
-
     this.double_click = (event, select_all=false) => {
       if (this.span.contentEditable === 'true') {
         return;
@@ -262,6 +256,169 @@ class HTMLText {
         current_index = match.index + match[0].length;
     });
     this.span.innerHTML += this.value.slice(current_index);
+  }
+}
+
+
+class HTMLDonableText extends HTMLText {
+  constructor(inner = '', css_classes = [], change_callback = () => {}, sp = 'p', enter_enter = false, view_only = false) {
+    super(inner, css_classes, change_callback, sp, enter_enter, view_only);
+    this.span.addEventListener('contextmenu', (event) => {
+      console.log('TODO implement mark as done button.');
+      event.preventDefault();
+      event.stopPropagation();
+    });
+  }
+}
+
+
+class HTMLSelectableText extends HTMLText {
+  constructor(inner='', options=[], on_open=()=>{}, on_close=()=>{}, order_change_callback=()=>{}, select_callback=()=>{}, delete_option_callback=()=>{},
+              disable_text_edit=false, css_classes=[], text_change_callback=()=>{}, sp='p', enter_enter=false, view_only=false) {
+    super(inner, css_classes, text_change_callback, sp, enter_enter, Boolean(view_only | disable_text_edit));
+    this.css_classes = css_classes;
+    this.context_menu = document.createElement('div');
+    // this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
+    this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none;';
+    this.context_menu.classList.add("hidden", "bg-grey", "border", "border-gray-200", "rounded-lg", "shadow-xl");
+    this.options = {};
+    this.list = document.createElement('lu');
+    this.list.classList.add("list-none");
+    this.context_menu.appendChild(this.list);
+    options.forEach(([id, v, el]) => {
+      this.add_option(id, v, el);
+    });
+    document.getElementById('mark-as-paid-buttons').appendChild(this.context_menu);
+    this.animationFrameId = null;
+
+    new Sortable(this.list, {
+        animation: 150,
+        ghostClass: 'bg-gray-300',
+        onEnd: (evt) => {
+          const draggedItem = evt.item;
+          if (draggedItem) {
+            const newValue = draggedItem.getAttribute('data-value');
+            if (newValue) {
+              console.log(`TODO: dragged ${newValue} ${draggedItem.textvalue}.`, this.options[newValue]);
+              const newOrder = Array.from(this.list.children).map(item =>
+                  [item.getAttribute('data-value'), item.textvalue, this.options[item.getAttribute('data-value')]]);
+              console.log(`TODO: updated order ${newOrder}.`)
+              order_change_callback([newValue, draggedItem.textvalue, this.options[newValue]], newOrder);
+            }
+          }
+        }
+    });
+
+    const update_menu_position = () => {
+      if (this.context_menu.classList.contains('hidden')) {
+          if (this.animationFrameId) {
+              cancelAnimationFrame(this.animationFrameId);
+              this.animationFrameId = null;
+          }
+          return;
+      }
+      this.context_menu.style.top = `0px`;
+      this.context_menu.style.left = `0px`;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const menuWidth = this.list.offsetWidth;
+      const menuHeight = this.list.offsetHeight;
+      const rect = this.span.getBoundingClientRect();
+      let leftPosition = rect.left - 6;
+      let topPosition = rect.top - 4; // + rect.height;
+      if (topPosition + menuHeight > viewportHeight) {
+        topPosition = viewportHeight - menuHeight - 5;
+      }
+      if (leftPosition + menuWidth > viewportWidth) {
+        leftPosition = viewportWidth - menuWidth - 5;
+      }
+      this.context_menu.style.top = `${topPosition}px`;
+      this.context_menu.style.left = `${leftPosition}px`;
+
+      this.animationFrameId = requestAnimationFrame(update_menu_position);
+    }
+
+    this.span.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.context_menu.classList.remove('hidden');
+      on_open();
+      update_menu_position();
+
+      const computedStyle = window.getComputedStyle(this.span);
+      const propertiesToCopy = ['font-size', 'font-weight', 'color'];
+      this.list.querySelectorAll('li').forEach(item => {
+          const optionSpan = item.querySelector('span:not(.delete-btn)');
+          if (optionSpan) {
+              optionSpan.style.cssText = '';
+              propertiesToCopy.forEach(prop => {
+                  optionSpan.style[prop] = computedStyle.getPropertyValue(prop);
+              });
+          }
+      });
+    });
+
+    this.context_menu.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    this.context_menu.addEventListener('click', (e) => {
+      const clickedItem = e.target.closest('li');
+      if (clickedItem) {
+        const clicked_value = clickedItem.getAttribute('data-value');
+        if (clicked_value) {
+          if (e.target.getAttribute('data-action') === 'delete') {
+            console.log('Delete', clicked_value, clickedItem.textvalue, this.options[clicked_value]);
+            delete_option_callback([clicked_value, clickedItem.textvalue, this.options[clicked_value]]);
+            // clickedItem.remove();
+            e.stopPropagation();
+          } else {
+            this.span.innerHTML = clickedItem.textvalue;
+            console.log('TODO: selected', clicked_value, clickedItem.textvalue, this.options[clicked_value]);
+            select_callback([clicked_value, clickedItem.textvalue, this.options[clicked_value]]);
+            this.context_menu.classList.add('hidden');
+          }
+        }
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!this.span.contains(e.target) && !this.context_menu.contains(e.target)) {
+        this.context_menu.classList.add('hidden');
+        on_close();
+      }
+    });
+  }
+
+  reset = () => {
+    while (this.list.firstChild) {
+      this.list.removeChild(this.list.lastChild);
+    }
+    this.options = {};
+  }
+
+  add_option = (id, v, option_el=undefined) => {
+    this.options[id] = (option_el !== undefined) ? option_el : v;
+    const option = document.createElement('li');
+    option.classList.add("menu-item", 'left-right-aligned');
+    this.css_classes?.forEach(css_class => option.classList.add(css_class));
+
+    option.dataset.value = id;
+    option.textvalue = v;
+    const option_span = document.createElement('span');
+    option_span.classList.add('left-span');
+    // option_span.style = window.getComputedStyle(this.span);
+    option_span.innerHTML = v;
+    option.appendChild(option_span);
+    const option_delete = document.createElement('sub');
+    option_delete.classList.add('pointer', 'right-span', 'delete-btn');
+    option_delete.setAttribute('data-action', 'delete')
+    option_delete.innerHTML = ' 🗑️';
+    // option_delete.innerHTML = 'X';
+    option.appendChild(option_delete);
+    this.list.appendChild(option);
+    return option_span;
   }
 }
 
@@ -482,31 +639,6 @@ class SortableHTMLList {
     this.callback(Array.from(this.list.children).map((li) => li.reference), original_order, this.dragged_item.reference);
     // next_visit.innerHTML = Array.from(list.querySelectorAll('li'))[0].innerHTML;
   }
-
-
-  /*
-    const list = document.createElement('ul');
-    edges_div.appendChild(list);
-    list.id = 'sortable-list';
-
-    const options = [];
-    for (var i = 1; i < 4; i += 1) {
-      const op = document.createElement('li');
-      op.draggable = true;
-      list.appendChild(op);
-      op.innerHTML = `Optie ${i}`;
-      options.push(op);
-    }
-
-    this.table = document.createElement('table');
-    for (const css_class of css_classes) {
-      this.table.classList.add(css_class);
-    }
-    this.options = [];
-    this.rows = [];
-    this.row_cells = [];
-  }
- */
 }
 
 

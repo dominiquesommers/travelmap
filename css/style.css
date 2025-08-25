@@ -438,10 +438,102 @@ html, body {
   z-index: 20;
 }
 
+#custom-context-menu {
+  position: absolute;
+  z-index: 50; /* Tailwind z-50 for high z-index */
+  user-select: none; /* Prevent text selection in the menu */
+  min-width: 120px;
 
+}
 
+/* Hide the menu by default */
+#custom-context-menu.hidden {
+  display: none;
+}
 
+.left-right-aligned {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+/* Style the list items inside the menu */
+.menu-item {
+  padding: 8px 16px;
+  cursor: grab; /* Change cursor to indicate draggability */
+  @apply transition-colors duration-150;
+}
+.left-span {
+  /* No special alignment needed, it's the first child */
+}
+
+.right-span {
+  margin-left: 10px;
+  /* No special alignment needed, it will be pushed to the right */
+}
+
+/* The cursor when an item is being dragged */
+.menu-item:active {
+  cursor: grabbing;
+}
+
+.menu-item:hover {
+  background-color: oklch(0.869 0.022 252.894);
+  /*@apply bg-blue-500 text-white;*/
+}
+
+.shadow-xl {
+  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.bg-white {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+
+.bg-grey {
+  --tw-bg-opacity: 1;
+  background-color: oklch(0.967 0 89.876);
+}
+
+.border-gray-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(229 231 235 / var(--tw-border-opacity, 1));
+}
+
+.border {
+  border-width: 1px;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.menu-item {
+  padding: 4px 6px;
+  border: 1px;
+  border-color: oklch(0.869 0.022 252.894);
+  cursor: grab;
+  min-width: 70px;
+}
+
+.list-none {
+    list-style-type: none;
+}
+
+.bg-gray-300 {
+  background-color: oklch(0.869 0.022 252.894);
+}
+
+.opacity-04 {
+  opacity: 0.4;
+}
 
 
 /*.destination-marker {*/

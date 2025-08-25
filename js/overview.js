@@ -137,7 +137,46 @@ class Overview {
           }
         });
       };
-      const plan_name_span = new HTMLText(plan_name, [], plan_name_changed, 'span', true, this.maphandler.view_only);
+
+      const on_select = (selected_item) => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        if (params.get('plan') !== selected_item[0]) {
+          params.set('plan', selected_item[0]);
+          const newUrl = `${url.origin}${url.pathname}?${params.toString()}`;
+          // history.replaceState({ param: selected_item[1] }, '', newUrl);
+          window.location.assign(newUrl);
+        }
+      }
+      const on_delete = (selected_item) => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        if (params.get('plan') !== selected_item[0]) {
+          if (confirm('Are you sure you want to delete this plan and all its visits and edges?')) {
+            // TODO delete plan.
+            console.log(`delete plan ${selected_item}`);
+          }
+        } else {
+          alert(`Can't delete the currently selected plan.`)
+        }
+      }
+
+      const plan_options = Object.entries(this.maphandler.trips.value[this.maphandler.trip_id].plans).map(
+          ([k,v]) => [k, v.name]);
+      const plan_name_span = new HTMLSelectableText(plan_name, plan_options, ()=>{}, ()=>{}, ()=>{},
+          on_select, on_delete, false,
+          ['adjacent-visit'], plan_name_changed, 'span', true, this.maphandler.view_only);
+      plan_name_span.list.querySelectorAll('li').forEach((option) => {
+        const dup = document.createElement('span');
+        dup.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M20 29H6a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3zM6 11a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V12a1 1 0 0 0-1-1zM10 8a1 1 0 0 1-1-1V6a3 3 0 0 1 3-3h1a1 1 0 0 1 0 2h-1a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1zM26 23h-1a1 1 0 0 1 0-2h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 2 0v1a3 3 0 0 1-3 3zM28 8a1 1 0 0 1-1-1V6a1 1 0 0 0-1-1h-1a1 1 0 0 1 0-2h1a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1zM28 16a1 1 0 0 1-1-1v-4a1 1 0 0 1 2 0v4a1 1 0 0 1-1 1zM21 5h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M16 20h-6a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2z" fill="#000000" opacity="1" data-original="#000000" class=""></path><path d="M13 23a1 1 0 0 1-1-1v-6a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+        dup.classList.add('right-span', 'pointer');
+        dup.addEventListener('click', (evt) => {
+          console.log('duplicate option', option.dataset.value, option.textvalue, plan_name_span.options[option.dataset.value]);
+          evt.stopPropagation();
+        });
+        option.appendChild(dup);
+      });
+
       // plan_name_span.style.padding = '0px';
       this.title.appendChild(plan_name_span.span);
     }
