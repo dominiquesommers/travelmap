@@ -63,7 +63,6 @@ class Overview {
           console.log(data);
         }
       });
-
     };
     const date_span3 = document.createElement('span');
     this.dates.appendChild(date_span3);
