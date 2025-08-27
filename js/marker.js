@@ -509,10 +509,10 @@ class VisitPopup {
     this.next_visit.classList.add('pointer');
 
     const on_open = () => {
-      add_edge_span.classList.remove('hidden');
+      // this.add_edge_span.classList.remove('hidden');
     }
     const on_close = () => {
-      add_edge_span.classList.add('hidden');
+      // this.add_edge_span.classList.add('hidden');
     }
 
     const order_change_callback = (selected_edge_option, new_order) => {
@@ -545,7 +545,7 @@ class VisitPopup {
       on_close();
     }
 
-    const on_delete_callback = ([id, text, edge]) => {
+    const on_delete_callback = ([id, text, edge, li_element]) => {
       if (confirm('Are you sure you want to delete this outgoing edge?')) {
         edge.source.remove_outgoing_edge(edge);
       }
@@ -555,12 +555,12 @@ class VisitPopup {
     this.next_visit = this.next_edge_list.span;
     this.next_visit.classList.add('left-span');
     next_edge_div.appendChild(this.next_visit);
-    const add_edge_span = document.createElement('span');
+    this.add_edge_span = document.createElement('span');
     next_edge_div.classList.add('left-right-aligned');
-    next_edge_div.appendChild(add_edge_span);
-    add_edge_span.classList.add('pointer', 'right-span', 'hidden');
-    add_edge_span.innerHTML = '➕';
-    add_edge_span.addEventListener('click', this.add_edge);
+    next_edge_div.appendChild(this.add_edge_span);
+    this.add_edge_span.classList.add('pointer', 'right-span'); //, 'hidden');
+    this.add_edge_span.innerHTML = '➕';
+    this.add_edge_span.addEventListener('click', this.add_edge);
 
     // const edit = document.createElement('span');
     // next_edge_div.appendChild(edit)

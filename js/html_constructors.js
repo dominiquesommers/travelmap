@@ -370,7 +370,7 @@ class HTMLSelectableText extends HTMLText {
         if (clicked_value) {
           if (e.target.getAttribute('data-action') === 'delete') {
             console.log('Delete', clicked_value, clickedItem.textvalue, this.options[clicked_value]);
-            delete_option_callback([clicked_value, clickedItem.textvalue, this.options[clicked_value]]);
+            delete_option_callback([clicked_value, clickedItem.textvalue, this.options[clicked_value], clickedItem]);
             // clickedItem.remove();
             e.stopPropagation();
           } else {
