@@ -44,12 +44,10 @@ class VisitPopup {
   }
 
   update_next_nights = (new_value, old_value=undefined) => {
-    // console.log(`update_next_nights: ${new_value}`);
     this.next_visit.innerHTML = `${this.adjacent_visit_string(this.visit.next_edge.value.destination)}`; // `${this.visit.next_edge.value.destination.place.name} (${new_value})`;
   }
 
   update_previous_nights = (new_value, old_value=undefined) => {
-    // console.log(`update_previous_nights: ${new_value}`);
     this.previous_visit.innerHTML = `${this.adjacent_visit_string(this.visit.previous_edge.value.source)}`; //  `${this.visit.previous_edge.value.source.place.name} (${new_value})`;
   }
 
@@ -60,43 +58,28 @@ class VisitPopup {
       old_edge.route.duration.unsubscribe(this.update_next_route_info);
       old_edge.route.estimated_cost.unsubscribe(this.update_next_route_info);
     }
-    // console.log(`Next edge updated: ${new_edge}`);
     if (new_edge !== undefined) {
       new_edge.destination.nights.subscribe(this.update_next_nights);
       new_edge.route.route_type.subscribe(this.update_next_route_info);
       new_edge.route.duration.subscribe(this.update_next_route_info);
       new_edge.route.estimated_cost.subscribe(this.update_next_route_info);
-      this.update_next_route_info();
-      this.next_visit.innerHTML = `${this.adjacent_visit_string(new_edge.destination)}`;
-      this.next_visit.addEventListener('click', () => {
-        this.visit.place.map_handler.map.flyTo({'center': [new_edge.destination.place.coordinates.lat, new_edge.destination.place.coordinates.lng]});
-        this.visit.place.marker.popup.remove();
-        new_edge.destination.place.marker.set_popup(undefined, new_edge.destination);
-        new_edge.destination.place.marker.popup.addTo(this.visit.place.map_handler.map);
-      });
-    } else {
-      this.next_edge_type.innerHTML = '';
-      this.next_visit.innerHTML = '';
-      this.next_visit.addEventListener('click', () => {});
+      this.next_visit.classList.remove('opacity-04');
+      this.next_route_details_cell.classList.remove('opacity-04');
+      this.next_edge_type.classList.remove('opacity-04');
     }
-    // // TODO update next destination (place, nights), and route information.
-    // // TODO this is just to get it working, should be done in a cleaner way.
-    // if (this.next_visit !== undefined) {
-    //   if (new_edge === undefined) {
-    //     this.next_visit.innerHTML = ``
-    //   } else {
-    //     this.next_visit.innerHTML = `${this.adjacent_visit_string(new_edge.destination)}`;
-    //   }
-    // }
   }
 
-  update_next_route_info = () => {
-    this.next_edge_type.innerHTML = transport_icons[this.visit.next_edge.value?.route.route_type.value];
-    this.next_edge_duration.innerHTML = Math.round(this.visit.next_edge.value?.route.duration.value);
-    this.next_edge_cost.innerHTML = `${Math.round(this.visit.next_edge.value?.route.estimated_cost.value)}${(this.visit.next_edge.value?.route.route_type.value === 'driving') ? '/d' : ''}`;
+  update_next_route_info = (edge) => {
+    this.next_edge_type.innerHTML = transport_icons[edge?.route.route_type.value];
+    this.next_edge_duration.innerHTML = Math.round(edge?.route.duration.value);
+    this.next_edge_cost.innerHTML = `${Math.round(edge?.route.estimated_cost.value)}${(edge?.route.route_type.value === 'driving') ? '/d' : ''}`;
   }
 
   update_rent_info = () => {
+    if (!this.visit.included.value) {
+      this.next_edge_rent.innerHTML = '';
+      return;
+    }
     if (this.visit.included_in_rent) return;
     let until_visit = this.visit.next_edge.value.rent_until;
     let non_drive_types = 0;
@@ -128,16 +111,9 @@ class VisitPopup {
           console.log(data);
         }
       });
-      // backend_communication.fetch('/travel/update_edge/', args, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     this.visit.next_edge.value.rent_until = this.visit.place.map_handler.get_visit_by_id(value);
-      //     this.visit.place.map_handler.graph.update_rent_info();
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
     }, this.visit.place.map_handler.view_only).select;
     rent_until_select.options[0].disabled = true;
+    console.log(until_visit);
 
     if (until_visit !== undefined && Array.from(rent_until_select.options).some((option) => option.value === until_visit.id)) {
       const base_route = this.visit.next_edge.value.route;
@@ -145,16 +121,17 @@ class VisitPopup {
       // Update and lock information through the 'driving' edges until the until_visit is reached.
       let next_visit = this.visit;
       while (next_visit !== until_visit) {
+        console.log(next_visit);
         const arrival_route = next_visit.next_edge.value.route;
         arrival_route.estimated_cost.value = base_route.estimated_cost.value;
         next_visit = next_visit.next_edge.value.destination;
         next_visit.included_in_rent = true;
-        const departure_route = next_visit.next_edge.value.route;
         const acco_string = `${(this.visit.next_edge.value.includes_accommodation) ? 'In' : 'Ex'}cludes accommodation.`
         next_visit.popup.previous_edge_rent.innerHTML = `Rent from: ${this.visit.place.name}_${this.visit.short_id}.<br>${acco_string}`
         if (next_visit === until_visit) {
           // next_visit.
         } else {
+          const departure_route = next_visit.next_edge.value.route;
           departure_route.estimated_cost.value = base_route.estimated_cost.value;
           next_visit.popup.next_edge_rent.innerHTML = `Rent until: ${until_visit.place.name}_${until_visit.short_id}.<br>${acco_string}`
         }
@@ -184,15 +161,6 @@ class VisitPopup {
           console.log(data);
         }
       });
-
-      // backend_communication.fetch('/travel/update_edge/', args, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     this.visit.next_edge.value.includes_accommodation = checkbox.checked;
-      //     this.visit.place.map_handler.graph.update_rent_info();
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
     });
   }
 
@@ -203,7 +171,6 @@ class VisitPopup {
       old_edge.route.duration.unsubscribe(this.update_previous_route_info);
       old_edge.route.estimated_cost.unsubscribe(this.update_previous_route_info);
     }
-    // console.log(`update_previous_edge: ${new_edge}`);
     if (new_edge !== undefined) {
       new_edge.source.nights.subscribe(this.update_previous_nights);
       new_edge.route.route_type.subscribe(this.update_previous_route_info);
@@ -223,6 +190,7 @@ class VisitPopup {
       this.previous_edge_cost.innerHTML = 0;
       this.previous_visit.innerHTML = '';
       this.previous_visit.addEventListener('click', () => {});
+      this.prev_route_details_cell?.classList.add('hidden');
     }
   }
 
@@ -230,6 +198,7 @@ class VisitPopup {
     this.previous_edge_type.innerHTML = transport_icons[this.visit.previous_edge.value?.route.route_type.value];
     this.previous_edge_duration.innerHTML = Math.round(this.visit.previous_edge.value?.route.duration.value);
     this.previous_edge_cost.innerHTML = `${Math.round(this.visit.previous_edge.value?.route.estimated_cost.value)}${(this.visit.previous_edge.value?.route.route_type.value === 'driving') ? '/d' : ''}`;
+    this.prev_route_details_cell?.classList.remove('hidden');
   }
 
   adjacent_visit_string = (visit) => {
@@ -238,12 +207,42 @@ class VisitPopup {
 
   update_outgoing_edge_information = (a=undefined, b=undefined) => {
     this.next_edge_list.reset();
+    let found = false;
     this.visit._outgoing_edges.value.forEach((edge) => {
       const option_span = this.next_edge_list.add_option(edge.get_id(), `${this.adjacent_visit_string(edge.destination)}`, edge);
       if (!edge.destination.included.value) {
         option_span.classList.add('opacity-04');
+      } else {
+        if (!found) {
+          found = true;
+          this.next_visit.innerHTML = `${this.adjacent_visit_string(edge.destination)}`;
+          this.update_next_route_info(edge);
+          this.next_visit.classList.add('pointer');
+          this.next_visit.addEventListener('click', () => {
+            this.visit.place.map_handler.map.flyTo({'center': [edge.destination.place.coordinates.lat, edge.destination.place.coordinates.lng]});
+            this.visit.place.marker.popup.remove();
+            edge.destination.place.marker.set_popup(undefined, edge.destination);
+            edge.destination.place.marker.popup.addTo(this.visit.place.map_handler.map);
+          });
+          if (edge !== this.visit.next_edge.value) {
+            this.next_visit.classList.add('opacity-04');
+            this.next_route_details_cell.classList.add('opacity-04');
+            if (this.visit.place.name === 'Rotterdam') {
+              console.log(this.route_details_cell);
+            }
+            this.next_edge_type.classList.add('opacity-04');
+            // this.next_edge_duration.classList.add('opacity-04');
+            // this.next_edge_cost.classList.add('opacity-04');
+          }
+        }
       }
     });
+    if (!found) {
+      this.next_visit.innerHTML = 'n/a';
+      this.next_visit.classList.remove('pointer');
+      this.next_visit.addEventListener('click', () => {});
+      this.update_next_route_info(undefined);
+    }
   }
 
   update_outgoing_edges = (new_edges, old_edges=undefined) => {
@@ -405,12 +404,13 @@ class VisitPopup {
     // cell3.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 45.437 45.437" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M41.403 11.11c-.371-3.627-.962-6.451-1.897-7.561-3.855-4.564-30.859-4.898-33.925 0-.75 1.2-1.276 4.014-1.629 7.567a2.287 2.287 0 0 0-2.026 2.267v4.443a2.29 2.29 0 0 0 1.5 2.146c-.207 6.998-.039 14.299.271 17.93 0 2.803 1.883 2.338 1.883 2.338h1.765v3.026c0 1.2 1.237 2.171 2.761 2.171 1.526 0 2.763-.971 2.763-2.171V40.24h20.534v3.026c0 1.2 1.236 2.171 2.762 2.171 1.524 0 2.761-.971 2.761-2.171V40.24h.58s2.216.304 2.358-1.016c0-3.621.228-11.646.04-19.221a2.28 2.28 0 0 0 1.607-2.177v-4.443a2.284 2.284 0 0 0-2.108-2.273zM12.176 4.2h20.735v3.137H12.176V4.2zm.296 32.467a2.947 2.947 0 1 1 0-5.895 2.947 2.947 0 0 1 0 5.895zm20.328 0a2.948 2.948 0 1 1-.002-5.892 2.948 2.948 0 0 1 .002 5.892zm3.747-12.9H8.54V9.077h28.007v14.69z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     const cell4 = table_constructor.add_cell(1, ['leftie']);
     cell4.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 16 16" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M9.414.586a2 2 0 1 1-2.828 2.828A2 2 0 0 1 9.414.586M9.414 6.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828M9.414 12.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    const cell5 = table_constructor.add_cell(1, ['route-details']);
+    this.prev_route_details_cell = table_constructor.add_cell(1, ['route-details']);
+    this.prev_route_details_cell.classList.add('hidden');
     const divider = document.createElement('span');
     divider.innerHTML = 'h<br>€'
-    cell5.appendChild(this.previous_edge_duration);
-    cell5.appendChild(divider);
-    cell5.appendChild(this.previous_edge_cost);
+    this.prev_route_details_cell.appendChild(this.previous_edge_duration);
+    this.prev_route_details_cell.appendChild(divider);
+    this.prev_route_details_cell.appendChild(this.previous_edge_cost);
 
     const cell_rent2 = table_constructor.add_cell(1, ['route-details']);
     cell_rent2.appendChild(this.previous_edge_rent);
@@ -423,11 +423,26 @@ class VisitPopup {
     cell6.appendChild(gps)
     gps.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="34" height="34" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M256 0C153.755 0 70.573 83.182 70.573 185.426c0 126.888 165.939 313.167 173.004 321.035 6.636 7.391 18.222 7.378 24.846 0 7.065-7.868 173.004-194.147 173.004-321.035C441.425 83.182 358.244 0 256 0zm0 278.719c-51.442 0-93.292-41.851-93.292-93.293S204.559 92.134 256 92.134s93.291 41.851 93.291 93.293-41.85 93.292-93.291 93.292z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     gps.classList.add('edit');
+    if (!this.visit.included.value) {
+      gps.classList.add('opacity-04');
+    }
     gps.addEventListener('click', (event) => {
       if (this.visit.place.map_handler.view_only) { return; }
       this.visit.included.value = !this.visit.included.value;
+      if (this.visit.included.value) {
+        current_visit_cell.classList.remove('opacity-04');
+        gps.classList.remove('opacity-04');
+      } else {
+        current_visit_cell.classList.add('opacity-04');
+        gps.classList.add('opacity-04');
+      }
+      this.update_outgoing_edge_information();
+      this.update_rent_info();
     });
     const current_visit_cell = table_constructor.add_cell(2, ['current-visit']);
+    if (!this.visit.included.value) {
+      current_visit_cell.classList.add('opacity-04');
+    }
     const current_visit_name_span = document.createElement('span');
     current_visit_cell.appendChild(current_visit_name_span);
     current_visit_name_span.innerHTML = `${this.visit.place.name}<sub>${this.visit.short_id}</sub>`;
@@ -488,12 +503,12 @@ class VisitPopup {
     cell8.appendChild(this.next_edge_type);
     const cell9 = table_constructor.add_cell(3, ['leftie']);
     cell9.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 16 16" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M9.414.586a2 2 0 1 1-2.828 2.828A2 2 0 0 1 9.414.586M9.414 6.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828M9.414 12.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    const cell10 = table_constructor.add_cell(3, ['route-details']);
+    this.next_route_details_cell = table_constructor.add_cell(3, ['route-details']);
     const divider2 = document.createElement('span');
     divider2.innerHTML = 'h<br>€'
-    cell10.appendChild(this.next_edge_duration);
-    cell10.append(divider2);
-    cell10.appendChild(this.next_edge_cost);
+    this.next_route_details_cell.appendChild(this.next_edge_duration);
+    this.next_route_details_cell.append(divider2);
+    this.next_route_details_cell.appendChild(this.next_edge_cost);
     const cell_rent = table_constructor.add_cell(3, ['route-details']);
     cell_rent.appendChild(this.next_edge_rent);
     cell_rent.style = 'padding: 0px 5px 0px 5px';
@@ -504,15 +519,15 @@ class VisitPopup {
 
     const next_edge_div = document.createElement('div');
     cell12.appendChild(next_edge_div);
-    next_edge_div.classList.add('custom-select');
-    next_edge_div.appendChild(this.next_visit);
-    this.next_visit.classList.add('pointer');
+    // next_edge_div.classList.add('custom-select');
+    // next_edge_div.appendChild(this.next_visit);
+    // this.next_visit.classList.add('pointer');
 
     const on_open = () => {
-      // this.add_edge_span.classList.remove('hidden');
+      this.add_edge_span.classList.remove('hidden');
     }
     const on_close = () => {
-      // this.add_edge_span.classList.add('hidden');
+      this.add_edge_span.classList.add('hidden');
     }
 
     const order_change_callback = (selected_edge_option, new_order) => {
@@ -554,11 +569,12 @@ class VisitPopup {
         true, [], ()=>{}, 'span', true, this.visit.place.map_handler.view_only);
     this.next_visit = this.next_edge_list.span;
     this.next_visit.classList.add('left-span');
+    this.next_visit.innerHTML = 'n/a';
     next_edge_div.appendChild(this.next_visit);
     this.add_edge_span = document.createElement('span');
     next_edge_div.classList.add('left-right-aligned');
     next_edge_div.appendChild(this.add_edge_span);
-    this.add_edge_span.classList.add('pointer', 'right-span'); //, 'hidden');
+    this.add_edge_span.classList.add('pointer', 'right-span', 'hidden');
     this.add_edge_span.innerHTML = '➕';
     this.add_edge_span.addEventListener('click', this.add_edge);
 

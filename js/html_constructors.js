@@ -176,7 +176,10 @@ class HTMLText {
     this.span = document.createElement(sp);
     this.span.contentEditable = false;
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
-    this.span.style = 'width: 100%; white-space: initial; word-wrap: break-word; padding: 0px 2px 0px 0px; cursor: pointer;' // -webkit-user-select: none;'
+    this.span.style = 'width: 100%; white-space: initial; word-wrap: break-word; padding: 0px 2px 0px 0px;' // -webkit-user-select: none;'
+    if (!view_only) {
+      this.span.classList.add('pointer');
+    }
     this.change_callback = change_callback;
 
     this.span.addEventListener('keypress', (event) => {
