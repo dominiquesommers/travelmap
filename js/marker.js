@@ -231,8 +231,6 @@ class VisitPopup {
               console.log(this.route_details_cell);
             }
             this.next_edge_type.classList.add('opacity-04');
-            // this.next_edge_duration.classList.add('opacity-04');
-            // this.next_edge_cost.classList.add('opacity-04');
           }
         }
       }
