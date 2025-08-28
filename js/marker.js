@@ -253,7 +253,6 @@ class VisitPopup {
 
     new_edges.forEach((edge) => {
       if (!old_edges?.includes(edge)) {
-        // console.log(edge)
         edge.destination.nights.subscribe(this.update_outgoing_edge_information);
         edge.destination.included.subscribe(this.update_outgoing_edge_information);
       }
