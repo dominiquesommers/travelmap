@@ -8,7 +8,7 @@ class TravelApp {
     const url_parameters = new URLSearchParams(window.location.search);
     const view_only = url_parameters.get('mode') !== 'edit';
     const trip_id = Number(url_parameters.get('trip')) || 1;
-    const plan_id = Number(url_parameters.get('plan')) || 1;
+    const plan_id = url_parameters.get('plan') ? Number(url_parameters.get('plan')) : url_parameters.get('plan');
 
     this.map_handler = new MapHandler('map', access_token, trip_id, plan_id, this.map_loaded, view_only);
   }
@@ -25,7 +25,6 @@ class TravelApp {
       backend_communication.call_google_function('POST',
           'set_last', {'parameters': {'lat': center.lng, 'lng': center.lat,
               'zoom': this.map_handler.map.getZoom(), 'plan_id': this.map_handler.plan_id}}, () => {}, true );
-      // backend_communication.fetch('/travel/set_last/',{'parameters': {'lat': center.lng, 'lng': center.lat, 'zoom': this.map_handler.map.getZoom()}}, () => {} );
     }
   }
 
@@ -33,7 +32,11 @@ class TravelApp {
     this.map_handler.graph.initializing_data = true;
 
     console.log('Response from server:', data);
-    console.log(data['trips'][1]['plans'][1]);
+    if (!this.map_handler.plan_id) {
+      const findMinPriorityTrip = (plans) => Object.keys(plans).reduce((minId, currentId) => (plans[currentId].priority < plans[minId].priority ? currentId : minId), Object.keys(plans)[0]);
+      this.map_handler.plan_id = findMinPriorityTrip(data['trips'][1].plans);
+    }
+
     this.map_handler.trips.value = data['trips'];
     data['general'] = data['trips'][this.map_handler.trip_id]['plans'][this.map_handler.plan_id];
     this.map_handler.overview.start_date.value = (new Date(data['general']['start_date'])).toISOString().split('T')[0];

@@ -152,7 +152,6 @@ class Overview {
         const params = url.searchParams;
         if (params.get('plan') !== selected_item[0]) {
           if (confirm('Are you sure you want to delete this plan and all its visits and edges?')) {
-            // TODO delete plan.
             console.log(`delete plan ${selected_item}`);
             backend_communication.call_google_function('POST',
                 'remove_plan', {'parameters': {'plan_id': selected_item[0]}}, (data) => {
@@ -168,10 +167,23 @@ class Overview {
         }
       }
 
+      const order_change_callback = (selected_plan_option, new_order) => {
+        const new_index = new_order.map(element => element[0]).indexOf(selected_plan_option[0]);
+        const priority = (new_index === 0) ? new_order[1][2].priority - 1 :
+              (new_index === (new_order.length - 1)) ? new_order[new_order.length - 2][2].priority + 1 :
+                  (new_order[new_index - 1][2].priority + new_order[new_index + 1][2].priority) / 2;
+        selected_plan_option[2].priority = priority;
+        const args = { 'parameters': {'plan_id': selected_plan_option[0], 'column': 'priority', 'value': priority} };
+        backend_communication.call_google_function('POST',
+                  'update_plan', args, (data) => {
+          if (data['status'] !== 'OK') console.log(data);
+        });
+      }
+
       const plan_options = Object.entries(this.maphandler.trips.value[this.maphandler.trip_id].plans).map(
-          ([k,v]) => [k, v.name]);
-      const plan_name_span = new HTMLSelectableText(plan_name, plan_options, ()=>{}, ()=>{}, ()=>{},
-          on_select, on_delete, false,
+          ([k, v]) => [k, v.name, v]);
+      const plan_name_span = new HTMLSelectableText(plan_name, plan_options.sort((a, b) => a[2].priority - b[2].priority),
+          ()=>{}, ()=>{}, order_change_callback, on_select, on_delete, false,
           ['adjacent-visit'], plan_name_changed, 'span', true, this.maphandler.view_only);
       plan_name_span.list.querySelectorAll('li').forEach((option) => {
         const dup = document.createElement('span');

@@ -34,12 +34,19 @@ class RoutePopup {
   create_elements = () => {
     this.source = document.createElement('span');
     this.source.classList.add('pointer');
-    this.source.addEventListener('click', () =>
-      this.route.map_handler.map.flyTo({center: [this.route.source.coordinates.lat, this.route.source.coordinates.lng]}));
+    this.source.addEventListener('click', () => {
+      this.route.map_handler.map.flyTo({center: [this.route.source.coordinates.lat, this.route.source.coordinates.lng]});
+      this.route.popup.remove();
+    });
     this.destination = document.createElement('span');
     this.destination.classList.add('pointer');
-    this.destination.addEventListener('click', () =>
-      this.route.map_handler.map.flyTo({center: [this.route.destination.coordinates.lat, this.route.destination.coordinates.lng]}));
+    this.destination.addEventListener('click', () => {
+      this.route.map_handler.map.flyTo({center: [this.route.destination.coordinates.lat, this.route.destination.coordinates.lng]});
+      this.route.popup.remove();
+      // this.route.destination.marker.set_popup(undefined, this.route.destination.visits.value[0]);
+      // this.route.destination.marker.popup.addTo(this.route.map_handler.map);
+
+    });
 
     this.route_type = new HTMLSelect(['flying', 'train', 'bus', 'driving', 'boat', undefined].map(t => [t, transport_icons[t]]),
         ['transport-select'], this.type_changed, this.route.map_handler.view_only).select;
