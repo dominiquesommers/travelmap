@@ -1,5 +1,5 @@
 class MapHandler {
-  constructor(container, access_token, trip_id, plan_id, loaded_callback=() => {}, view_only=true) {
+  constructor(container, access_token, trip_id=undefined, plan_id=undefined, loaded_callback=() => {}, view_only=true) {
     mapboxgl.accessToken = access_token;
     this.trip_id = trip_id;
     this.plan_id = plan_id;

@@ -140,17 +140,18 @@ class Overview {
       const on_select = (selected_item) => {
         const url = new URL(window.location.href);
         const params = url.searchParams;
-        if (params.get('plan') !== selected_item[0]) {
-          params.set('plan', selected_item[0]);
+        const plan_name_uri = selected_item[1]; //encodeURIComponent(selected_item[1]);
+        if (params.get('plan') !== plan_name_uri) {
+          params.set('plan', plan_name_uri);
           const newUrl = `${url.origin}${url.pathname}?${params.toString()}`;
           // history.replaceState({ param: selected_item[1] }, '', newUrl);
           window.location.assign(newUrl);
         }
       }
       const on_delete = (selected_item) => {
-        const url = new URL(window.location.href);
-        const params = url.searchParams;
-        if (params.get('plan') !== selected_item[0]) {
+        // const url = new URL(window.location.href);
+        // const params = url.searchParams;
+        if (this.maphandler.plan_id !== selected_item[0]) {
           if (confirm('Are you sure you want to delete this plan and all its visits and edges?')) {
             console.log(`delete plan ${selected_item}`);
             backend_communication.call_google_function('POST',
@@ -197,7 +198,8 @@ class Overview {
               if (data['status'] === 'OK') {
                 const url = new URL(window.location.href);
                 const params = url.searchParams;
-                params.set('plan', data['new_plan_id']);
+                // params.set('plan', encodeURIComponent(data['new_plan_name']));
+                params.set('plan', data['new_plan_name']);
                 const newUrl = `${url.origin}${url.pathname}?${params.toString()}`;
                 window.location.assign(newUrl);
               } else {

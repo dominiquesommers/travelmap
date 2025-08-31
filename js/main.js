@@ -7,24 +7,27 @@ class TravelApp {
   constructor(access_token) {
     const url_parameters = new URLSearchParams(window.location.search);
     const view_only = url_parameters.get('mode') !== 'edit';
-    const trip_id = Number(url_parameters.get('trip')) || 1;
-    const plan_id = url_parameters.get('plan') ? Number(url_parameters.get('plan')) : url_parameters.get('plan');
+    this.trip_name = decodeURIComponent(url_parameters.get('trip')) || 'Wereldreis';
+    this.plan_name = decodeURIComponent(url_parameters.get('plan'));
+    console.log(this.plan_name);
 
-    this.map_handler = new MapHandler('map', access_token, trip_id, plan_id, this.map_loaded, view_only);
+    this.map_handler = new MapHandler('map', access_token, undefined, undefined, this.map_loaded, view_only);
   }
 
   map_loaded = () => {
     console.log(this.map_handler.plan_id);
     console.log(this.map_handler.trip_id);
     backend_communication.call_google_function('GET', 'load_data',
-        {'trip_id': this.map_handler.trip_id, 'plan_id': this.map_handler.plan_id},
+        {'trip_name': this.trip_name, 'plan_name': this.plan_name},
     this.data_loaded);
     // backend_communication.fetch('/travel/load_data/',{}, this.data_loaded );
     window.onbeforeunload = () => {
-      const center = this.map_handler.map.getCenter();
-      backend_communication.call_google_function('POST',
-          'set_last', {'parameters': {'lat': center.lng, 'lng': center.lat,
-              'zoom': this.map_handler.map.getZoom(), 'plan_id': this.map_handler.plan_id}}, () => {}, true );
+      if (this.map_handler.plan_id !== undefined) {
+        const center = this.map_handler.map.getCenter();
+        backend_communication.call_google_function('POST',
+            'set_last', {'parameters': {'lat': center.lng, 'lng': center.lat,
+                'zoom': this.map_handler.map.getZoom(), 'plan_id': this.map_handler.plan_id}}, () => {}, true );
+      }
     }
   }
 
@@ -32,12 +35,34 @@ class TravelApp {
     this.map_handler.graph.initializing_data = true;
 
     console.log('Response from server:', data);
-    if (!this.map_handler.plan_id) {
+
+    const find_result = Object.entries(data.trips).find(([k, v]) => v['name'] == this.trip_name);
+    if (find_result === undefined) {
+      alert(`Trip name does not exist, should be one of [${Object.values(data.trips).map(t => t.name)}], taking the default (Wereldreis).`)
+    }
+    const [trip_id, plans] = (find_result === undefined) ? [1, data.trips[1]] : find_result;
+    // const [trip_id, plans] = Object.entries(data.trips).find(([k, v]) => v['name'] == this.trip_name);
+    console.log(trip_id, plans.plans)
+    console.log(Object.entries(plans.plans));
+    this.map_handler.trip_id = Number(trip_id);
+
+    if (this.plan_name !== undefined && this.plan_name !== null) {
+      const find_result = Object.entries(plans.plans).find(([k, v]) => v['name'] == this.plan_name);
+      if (find_result === undefined) {
+        alert(`Plan name does not exist, should be one of [${Object.values(plans.plans).map(p => p.name)}], taking the prioritized.`)
+        const findMinPriorityTrip = (plans) => Object.keys(plans).reduce((minId, currentId) => (plans[currentId].priority < plans[minId].priority ? currentId : minId), Object.keys(plans)[0]);
+        this.map_handler.plan_id = findMinPriorityTrip(data['trips'][trip_id].plans);
+      } else {
+        const [plan_id, plan] = Object.entries(plans.plans).find(([k, v]) => v['name'] == this.plan_name)
+        this.map_handler.plan_id = Number(plan_id);
+      }
+    } else {
       const findMinPriorityTrip = (plans) => Object.keys(plans).reduce((minId, currentId) => (plans[currentId].priority < plans[minId].priority ? currentId : minId), Object.keys(plans)[0]);
-      this.map_handler.plan_id = findMinPriorityTrip(data['trips'][1].plans);
+      this.map_handler.plan_id = findMinPriorityTrip(data['trips'][trip_id].plans);
     }
 
     this.map_handler.trips.value = data['trips'];
+
     data['general'] = data['trips'][this.map_handler.trip_id]['plans'][this.map_handler.plan_id];
     this.map_handler.overview.start_date.value = (new Date(data['general']['start_date'])).toISOString().split('T')[0];
     this.map_handler.map.jumpTo({center: [data['general']['lat'], data['general']['lng']]});
