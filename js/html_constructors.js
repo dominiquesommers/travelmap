@@ -328,7 +328,8 @@ class HTMLSelectableText extends HTMLText {
       const menuHeight = this.list.offsetHeight;
       const rect = this.span.getBoundingClientRect();
       let leftPosition = rect.left - 6;
-      let topPosition = rect.top - 4; // + rect.height;
+      // let topPosition = rect.top - 4; // + rect.height;
+      let topPosition = rect.top + rect.height;
       if (topPosition + menuHeight > viewportHeight) {
         topPosition = viewportHeight - menuHeight - 5;
       }
