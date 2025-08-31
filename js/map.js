@@ -110,18 +110,23 @@ class MapHandler {
         this.map.addSource(source_id, { type: 'geojson', data: { 'type': 'FeatureCollection', 'features': []}, dynamic: true});
         this.add_layer({ id: `routes_${color}_${route_type}_lines`, type: 'line', source: source_id, layout: {'line-cap': 'round'},
           paint: { 'line-color': line_color,  // line_colors[color],
-            'line-width': 3}});
+            'line-width': 2.4}});
         this.add_layer({ id: `routes_${color}_${route_type}_icons`, 'type': 'symbol', 'source': source_id, 'paint': { 'icon-opacity': icon_opacities[color] }, 'minzoom': 0,
            'layout': { 'symbol-placement': 'line', 'symbol-spacing': 100, 'icon-allow-overlap': true,
              'icon-image': images[route_type], 'icon-size': icon_sizes[images[route_type]], 'visibility': 'visible' }});
 
-      this.map.on('click', `routes_${color}_${route_type}_icons`, (event) => this.routes.value[event.features[0].id].route_clicked(event));
       this.map.on('mouseenter', `routes_${color}_${route_type}_icons`, (event) => {
         this.route_hover_id = event.features[0].id;
         this.routes.value[event.features[0].id].route_hover(event);
       });
       this.map.on('mouseleave', `routes_${color}_${route_type}_icons`, (event) => this.routes.value[this.route_hover_id].route_unhover(event));
       });
+    });
+    this.map.on('click', (event) => {
+      const features = this.map.queryRenderedFeatures(event.point);
+      if (features.length > 0) {
+        this.routes.value[features[0].id]?.route_clicked(event);
+      }
     });
   };
 
