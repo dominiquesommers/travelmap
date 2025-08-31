@@ -301,29 +301,25 @@ html, body {
   z-index: 15;
   overflow: hidden;
   border-collapse: collapse;
+  display: flex;
+  border: 1.2px solid #4E7195;
+  font-family: monospace;
 }
 
-.destination-marker:first-child {
-  /*padding-left: 3px;*/
-  padding-left: 2px;
-}
 .left-cell {
-  /*padding-left: 6px !important;*/
-  padding-left: 4px !important;
+  padding-left: 7px !important;
+  margin-left: -2px;
 }
 
-.destination-marker:last-child {
-  /*padding-right: 3px;*/
-  padding-right: 2px;
-}
 .right-cell {
-  /*padding-right: 6px !important;*/
-  padding-right: 4px !important;
+  padding-right: 7px !important;
+  margin-right: -2px;
 }
 
 .destination-marker .number {
   min-width: 14px;
-  padding: 2px;
+  padding: 1px 3px 1px 3px;
+  font-family: monospace;
   /*color: #4E7195;*/
   /*font-size: 0.875rem;*/
   font-size: 0.8rem;

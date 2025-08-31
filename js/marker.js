@@ -121,7 +121,6 @@ class VisitPopup {
       // Update and lock information through the 'driving' edges until the until_visit is reached.
       let next_visit = this.visit;
       while (next_visit !== until_visit) {
-        console.log(next_visit);
         const arrival_route = next_visit.next_edge.value.route;
         arrival_route.estimated_cost.value = base_route.estimated_cost.value;
         next_visit = next_visit.next_edge.value.destination;
@@ -600,12 +599,13 @@ class VisitPopup {
 class PlaceMarker {
   constructor(place, map_handler) {
     this.place = place;
-    this.marker_div = this.create_html_div();
+    this.visits_div = this.create_html_div();
     this.map_handler = map_handler;
+    this.marker_div = this.visits_div;
 
     this.popup_div = document.createElement('div');
     this.popup = new mapboxgl.Popup({ closeOnClick: true, maxWidth: '450px', className: 'popupdiv', offset: {} }).setDOMContent(this.popup_div);
-    this.marker = new mapboxgl.Marker({element: this.marker_div, offset: [0, 8], anchor: 'top'}) // anchor: 'top'})
+    this.marker = new mapboxgl.Marker({element: this.marker_div, offset: [0, 4], anchor: 'top'}) // anchor: 'top'})
         .setLngLat([this.place.coordinates.lat, this.place.coordinates.lng])
         .setPopup(this.popup);
     this.popup.on('open', () => {
@@ -645,13 +645,8 @@ class PlaceMarker {
   }
 
   update_cell_values = (new_value=undefined, old_value=undefined) => {
-    // console.log(`lenght: ${this.place.visits.value.length}`)
     this.place.visits.value?.forEach((visit, index) => {
       this.visit_cells[index].innerHTML = visit.nights.value;
-      // if (!this.place.visits.value[index].included.value) {
-      //   this.visit_cells[index].innerHTML += '.';
-      // }
-      // this.visit_cells[index].toggleClass() // TODO cleaner way to show excluded visits.
     });
   }
 
@@ -664,14 +659,37 @@ class PlaceMarker {
       this.visit_cells.push(cell);
       cell.addEventListener('click', this.set_popup);
       if (index === 0) cell.classList.add('left-cell');
+      (index === this.place.visits.value.length - 1) ? cell.classList.add('right-cell') : cell.classList.remove('right-cell');
+
+      cell.addEventListener('mouseover', () => {
+        this.plus_cell.classList.remove('hidden');
+        this.visit_cells[this.visit_cells.length - 1].classList.remove('right-cell');
+
+        this.marker.setOffset([6.5, 4]);
+      });
+      cell.addEventListener('mouseleave', () => {
+        this.plus_cell.classList.add('hidden');
+        this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
+        this.marker.setOffset([0, 4]);
+      });
     });
-    this.plus_cell = this.pill.add_cell(0,['number']);
+    this.plus_cell = this.pill.add_cell(0, ['number']);
     this.plus_cell.addEventListener('click', (event) => {
       event.stopPropagation();
       if (this.place.map_handler.view_only) { return; }
       this.set_popup(event);
     });
-    this.plus_cell.classList.add('right-cell');
+    this.plus_cell.addEventListener('mouseover', () => {
+      this.plus_cell.classList.remove('hidden');
+      this.visit_cells[this.visit_cells.length - 1].classList.remove('right-cell');
+      this.marker.setOffset([6.5, 4]);
+    });
+    this.plus_cell.addEventListener('mouseleave', () => {
+      this.plus_cell.classList.add('hidden');
+      this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
+      this.marker.setOffset([0, 4]);
+    });
+    this.plus_cell.classList.add('right-cell', 'hidden');
     this.plus_cell.innerHTML = '+';
     this.add_visit_clicked = false;
   }
@@ -725,11 +743,13 @@ class PlaceMarker {
       i += 1;
     }
     x_offset += cell_widths[index] / 2;
-
+    x_offset += 6.5;
+    const h = 4;
     return {
-      'bottom': [x_offset, 8], 'top': [x_offset, 36], 'left': [pill_width/2, pill_height/2 + 8], 'right': [-pill_width/2, pill_height/2 + 8],
-      'top-left': [x_offset, pill_height + 8], 'top-right': [x_offset, pill_height + 8],
-      'bottom-left': [x_offset, 8], 'bottom-right': [x_offset, 8]
+      'bottom': [x_offset, h], 'top': [x_offset, 28], //pill_height + h],
+      'left': [pill_width/2, pill_height/2 + h], 'right': [-pill_width/2, pill_height/2 + h],
+      'top-left': [x_offset, pill_height + h], 'top-right': [x_offset, pill_height + h],
+      'bottom-left': [x_offset, h], 'bottom-right': [x_offset, h]
     };
   }
 
@@ -743,11 +763,6 @@ class PlaceMarker {
     this.pill = new HTMLTable(['destination-marker']);
     marker_div.appendChild(this.pill.table);
     this.pill.add_row();
-
-    const blubdiv = document.createElement('div');
-    blubdiv.style = 'padding:2px 5px 2px 5px;margin-top:2px;background:white;'
-    blubdiv.innerHTML = 'Hoi';
-    // marker_div.appendChild(blubdiv);
 
     this.create_cells();
     this.update_cell_values();

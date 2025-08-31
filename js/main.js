@@ -74,7 +74,6 @@ class TravelApp {
     data['general'] = data['trips'][this.map_handler.trip_id]['plans'][this.map_handler.plan_id];
     this.map_handler.overview.start_date.value = (new Date(data['general']['start_date'])).toISOString().split('T')[0];
     this.map_handler.map.jumpTo({center: [data['general']['lat'], data['general']['lng']]});
-    this.map_handler.map.setZoom(data['general']['zoom']);
 
     this.map_handler.load_image('icons/bus.png', `direction_bus`, (image) => {});
     this.map_handler.load_image('icons/boat.png', `direction_boat`, (image) => {});
@@ -119,6 +118,7 @@ class TravelApp {
 
     this.map_handler.graph.initializing_data = false;
     this.map_handler.graph.update_route();
+    this.map_handler.map.setZoom(data['general']['zoom']);
   }
 }
 

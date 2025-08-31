@@ -6,6 +6,7 @@ class MapHandler {
     this.trips = new Observable({});
     this.container = container;
     this.view_only = view_only;
+    this.previous_zoom = undefined;
     this.overview = new Overview(this);
     this.loaded_callback = loaded_callback;
     this.initialize_map();
@@ -40,14 +41,28 @@ class MapHandler {
       // style: 'mapbox://styles/mapbox/light-v11'
       // style: 'mapbox://styles/mapbox/dark-v11'
     });
+    this.previous_zoom = 8;
     this.map.on('style.load', this.on_style_load);
-    // });
-
-    // this.map.on('zoom', (e) => {
-    //   console.log('event type:', e.type);
-    //
-    //     // event type: boxzoomstart
-    // });
+    this.map.on('zoom', (event) => {
+      const threshold = 3.5;
+      const zoom = this.map.getZoom();
+      if (this.previous_zoom && this.previous_zoom < threshold && zoom > threshold) {
+        Object.values(this.places.value).forEach(place => {
+          place.marker.clear_cells();
+          place.marker.create_cells();
+          place.marker.update_cell_values();
+          place.marker.marker.setOffset([0, 4]);
+        });
+      } else if (this.previous_zoom && this.previous_zoom > threshold && zoom < threshold) {
+        Object.values(this.places.value).forEach(place => {
+          place.marker.clear_cells();
+          const cell = place.marker.pill.add_cell(0, []);
+          cell.style = 'width: 8px; height: 8px;';
+          place.marker.marker.setOffset([0, -4]);
+        });
+      }
+      this.previous_zoom = zoom;
+    });
   };
 
   get_visit_by_id = (visit_id) => {
