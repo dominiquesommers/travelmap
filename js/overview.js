@@ -133,6 +133,11 @@ class Overview {
             alert('Plan name already exists for this trip, choose another one.');
             plan_name_span.span.innerHTML = old_value;
             plan_name_span.process();
+          } else {
+            const url = new URL(window.location.href);
+            const params = url.searchParams;
+            params.set('plan', value)
+            window.history.pushState({}, '', `${url.origin}${url.pathname}?${params.toString()}`);
           }
         });
       };

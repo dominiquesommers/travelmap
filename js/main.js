@@ -39,6 +39,10 @@ class TravelApp {
     const find_result = Object.entries(data.trips).find(([k, v]) => v['name'] == this.trip_name);
     if (find_result === undefined) {
       alert(`Trip name does not exist, should be one of [${Object.values(data.trips).map(t => t.name)}], taking the default (Wereldreis).`)
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+      params.set('trip', 'Wereldreis')
+      window.history.pushState({}, '', `${url.origin}${url.pathname}?${params.toString()}`);
     }
     const [trip_id, plans] = (find_result === undefined) ? [1, data.trips[1]] : find_result;
     // const [trip_id, plans] = Object.entries(data.trips).find(([k, v]) => v['name'] == this.trip_name);
@@ -52,6 +56,10 @@ class TravelApp {
         alert(`Plan name does not exist, should be one of [${Object.values(plans.plans).map(p => p.name)}], taking the prioritized.`)
         const findMinPriorityTrip = (plans) => Object.keys(plans).reduce((minId, currentId) => (plans[currentId].priority < plans[minId].priority ? currentId : minId), Object.keys(plans)[0]);
         this.map_handler.plan_id = findMinPriorityTrip(data['trips'][trip_id].plans);
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        params.set('plan', data.trips[trip_id].plans[this.map_handler.plan_id].name);
+        window.history.pushState({}, '', `${url.origin}${url.pathname}?${params.toString()}`);
       } else {
         const [plan_id, plan] = Object.entries(plans.plans).find(([k, v]) => v['name'] == this.plan_name)
         this.map_handler.plan_id = Number(plan_id);
