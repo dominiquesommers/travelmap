@@ -679,17 +679,19 @@ class PlaceMarker {
       if (this.place.map_handler.view_only) { return; }
       this.set_popup(event);
     });
-    this.plus_cell.addEventListener('mouseover', () => {
-      this.plus_cell.classList.remove('hidden');
-      this.visit_cells[this.visit_cells.length - 1].classList.remove('right-cell');
-      this.marker.setOffset([6.5, 4]);
-    });
-    this.plus_cell.addEventListener('mouseleave', () => {
-      this.plus_cell.classList.add('hidden');
-      this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
-      this.marker.setOffset([0, 4]);
-    });
-    this.plus_cell.classList.add('right-cell', 'hidden');
+    if (this.place.visits.value?.length > 0) {
+      this.plus_cell.addEventListener('mouseover', () => {
+        this.plus_cell.classList.remove('hidden');
+        this.visit_cells[this.visit_cells.length - 1].classList.remove('right-cell');
+        this.marker.setOffset([6.5, 4]);
+      });
+      this.plus_cell.addEventListener('mouseleave', () => {
+        this.plus_cell.classList.add('hidden');
+        this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
+        this.marker.setOffset([0, 4]);
+      });
+      this.plus_cell.classList.add('right-cell', 'hidden');
+    }
     this.plus_cell.innerHTML = '+';
     this.add_visit_clicked = false;
   }
