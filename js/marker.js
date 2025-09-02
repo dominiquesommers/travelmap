@@ -673,7 +673,7 @@ class PlaceMarker {
         this.marker.setOffset([0, 4]);
       });
     });
-    this.plus_cell = this.pill.add_cell(0, ['number']);
+    this.plus_cell = this.pill.add_cell(0, ['number', 'right-cell']);
     this.plus_cell.addEventListener('click', (event) => {
       event.stopPropagation();
       if (this.place.map_handler.view_only) { return; }
@@ -690,7 +690,9 @@ class PlaceMarker {
         this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
         this.marker.setOffset([0, 4]);
       });
-      this.plus_cell.classList.add('right-cell', 'hidden');
+      this.plus_cell.classList.add('hidden');
+    } else {
+      this.plus_cell.classList.add('left-cell');
     }
     this.plus_cell.innerHTML = '+';
     this.add_visit_clicked = false;
