@@ -109,7 +109,7 @@ class Overview {
   }
 
   set_overview_title = () => {
-    this.title.innerHTML = 'Overview ';
+    this.title.innerHTML = '';
     if (this.maphandler.trip_id in this.maphandler.trips.value && this.maphandler.plan_id in this.maphandler.trips.value[this.maphandler.trip_id]['plans']) {
       const trip_name = this.maphandler.trips.value[this.maphandler.trip_id]['name'];
       const plan_name = this.maphandler.trips.value[this.maphandler.trip_id]['plans'][this.maphandler.plan_id]['name'];
@@ -123,7 +123,7 @@ class Overview {
       // trip_name_span.style.padding = '0px';
       this.title.appendChild(trip_name_span);
       const sep_span = document.createElement('span');
-      sep_span.innerHTML = ' - ';
+      sep_span.innerHTML = ' • ';
       this.title.appendChild(sep_span);
       const plan_name_changed = (value, old_value) => {
         const args = {'parameters': {'plan_id': this.maphandler.plan_id, 'column': `name`, 'value': value}};
@@ -274,6 +274,7 @@ class Overview {
     this.costs_div.appendChild(costs_div);
 
     add_collapsible(title_text, costs_div, '80vh');
+    costs_div.style.maxHeight = '0px';
 
     const country_costs = {cross_country: {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0, nights: 0}};
     let rent_until_edge = undefined;
