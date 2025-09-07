@@ -52,7 +52,7 @@ class RoutePopup {
         ['transport-select'], this.type_changed, this.route.map_handler.view_only).select;
     this.route_type.value = this.route.route_type.value;
 
-    this.duration = new HTMLNumber([], () => {this.route.duration.value = Number(this.duration.innerHTML);}, this.route.map_handler.view_only).span;
+    this.duration = new HTMLNumber(undefined,[], () => {this.route.duration.value = Number(this.duration.innerHTML);}, this.route.map_handler.view_only).span;
     this.route.duration.subscribe((new_value, old_value) => { this.duration.innerHTML = Math.round(new_value);} );
     this.cost = new HTMLCost([], (value, prefix) => {
       if (prefix === 'estimated') {
@@ -63,7 +63,7 @@ class RoutePopup {
         this.route.paid.value = value;
       }
     }, this.route.paid.value, this.route.map_handler.view_only);
-    this.nights = new HTMLNumber([], () => {this.route.nights.value = Number(this.nights.innerHTML);}, this.route.map_handler.view_only).span;
+    this.nights = new HTMLNumber(undefined,[], () => {this.route.nights.value = Number(this.nights.innerHTML);}, this.route.map_handler.view_only).span;
   }
 
   duration_changed = () => {

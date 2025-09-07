@@ -37,14 +37,13 @@ class HTMLCost {
     this.is_paid = paid;
     this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
     this.mark_as_paid_button.classList.add('mark-as-paid');
-    document.getElementById('mark-as-paid-buttons').appendChild(this.context_menu);
     this.span = document.createElement('span');
-    this.estimated_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'estimated'), view_only);
+    this.estimated_cost = new HTMLNumber(undefined,css_classes, (value) => change_callback(value, 'estimated'), view_only);
     this.estimated_cost_sup = document.createElement('sup');
     this.estimated_cost_sup.innerHTML = '(est.)';
     this.estimated_cost_sup.style = 'user-select: none; cursor: text;';
     this.estimated_cost_sup.classList.add('hidden', 'opacity-50');
-    this.actual_cost = new HTMLNumber(css_classes, (value) => change_callback(value, 'actual'), view_only);
+    this.actual_cost = new HTMLNumber(undefined,css_classes, (value) => change_callback(value, 'actual'), view_only);
     this.actual_cost.span.style = 'margin-left: 2px; cursor: pointer;';
     this.actual_cost.span.classList.add('hidden');
     this.actual_cost_sup = document.createElement('sup');
@@ -87,11 +86,15 @@ class HTMLCost {
 
     const set_properties = () => {
       if (this.is_paid) {
+        document.getElementById('floating-divs').appendChild(this.context_menu);
         this.estimated_cost.span.classList.add('line-through', 'opacity-50');
         this.estimated_cost_sup.classList.remove('hidden');
         this.actual_cost.span.classList.remove('hidden');
         this.actual_cost_sup.classList.remove('hidden');
       } else {
+        if (document.getElementById('floating-divs').contains(this.context_menu)) {
+          document.getElementById('floating-divs').removeChild(this.context_menu);
+        }
         this.estimated_cost.span.classList.remove('line-through', 'opacity-50');
         this.estimated_cost_sup.classList.add('hidden');
         this.actual_cost.span.classList.add('hidden');
@@ -123,18 +126,26 @@ class HTMLCost {
 }
 
 class HTMLNumber {
-  constructor(css_classes=[], change_callback=(value)=>{}, view_only=false) {
+  constructor(value=undefined, css_classes=[], change_callback=(value)=>{}, view_only=false, on_open=()=>{}) {
+    this.value = value;
     this.span = document.createElement('span');
-    this.span.style = 'padding: 0px 2px 0px 2px';
+    if (value !== undefined) {
+      this.span.innerHTML = Number(value);
+    }
     this.span.inputMode = 'numeric';
-    this.span.style = 'user-select: none; cursor: pointer;';
+    this.span.style.userSelect = 'text';
+    this.span.style.cursor = 'pointer';
+    this.span.style.padding = '0px 3px';
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
+    this.on_open = on_open;
     this.change_callback = change_callback;
+
     this.span.addEventListener('keypress', (event) => {
 	    if (isNaN(String.fromCharCode(event.which)) || event.code === 'Space') event.preventDefault();
       if (event.key === 'Enter') {
         this.span.contentEditable = false;
         event.preventDefault();
+        this.on_enter();
       }
     });
 
@@ -142,7 +153,9 @@ class HTMLNumber {
       if (this.span.contentEditable === 'true') {
         return;
       }
-      this.span.style = 'user-select: text; cursor: text;';
+      this.on_open();
+      this.span.style.userSelect = 'text';
+      this.span.style.cursor = 'text';
       event.preventDefault();
       event.stopPropagation();
       if (view_only) { return; }
@@ -159,20 +172,105 @@ class HTMLNumber {
       this.double_click(event);
     });
 
-    this.span.addEventListener('blur', (event) => {
-      this.span.innerHTML = Number(this.span.innerHTML);
-      this.span.contentEditable = false;
-      this.span.style = 'user-select: none; cursor: pointer;';
-      this.change_callback(Number(this.span.innerHTML));
-    });
+    this.add_blur();
+
     ['copy', 'cut', 'paste'].forEach((event) => {
       this.span.addEventListener(event, () => { return false; })
     })
   }
+
+  add_blur() {
+    this.span.addEventListener('blur', (event) => {
+      this.saveAndCloseEditor();
+    });
+  }
+
+  on_enter() {}
+
+  saveAndCloseEditor() {
+    this.span.innerHTML = Number(this.span.innerHTML);
+    this.span.contentEditable = false;
+    this.span.style.userSelect = 'none';
+    this.span.style.cursor = 'pointer';
+    if (Number(this.value) !== Number(this.span.innerHTML)) {
+      const old_value = (this.value === undefined) ? undefined : Number(this.value);
+      this.change_callback(Number(this.span.innerHTML), old_value);
+      this.value = Number(this.span.innerHTML);
+    }
+  }
 }
 
+
+class ClickableCell {
+  constructor(cell, css_classes=[], on_open=()=>{}, on_close=()=>{}, view_only=false) {
+    cell.style.cursor = 'pointer';
+    this.context_menu = document.createElement('div');
+    css_classes?.forEach(css_class => this.context_menu.classList.add(css_class));
+    this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; max-width: 200px;';
+    this.context_menu.classList.add("hidden", "bg-grey", //"bg-lightgrey",
+        "border", "border-gray-200", "rounded-lg", "shadow-xl");
+    // this.animationFrameId = null;
+
+    const update_menu_position = () => {
+      if (this.context_menu.classList.contains('hidden')) {
+        // if (this.animationFrameId) {
+        //   cancelAnimationFrame(this.animationFrameId);
+        //   this.animationFrameId = null;
+        // }
+        return;
+      }
+      this.context_menu.style.top = `0px`;
+      this.context_menu.style.left = `0px`;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const menuWidth = this.context_menu.offsetWidth;
+      const menuHeight = this.context_menu.offsetHeight;
+      const rect = cell.getBoundingClientRect();
+      let leftPosition = rect.left + (rect.width / 4);
+      // let topPosition = rect.top - 4; // + rect.height;
+      let topPosition = rect.top + (rect.height / 4);
+      if (topPosition + menuHeight > viewportHeight) {
+        topPosition = viewportHeight - menuHeight - 5;
+      }
+      if (leftPosition + menuWidth > viewportWidth) {
+        leftPosition = viewportWidth - menuWidth - 5;
+      }
+      this.context_menu.style.top = `${topPosition}px`;
+      this.context_menu.style.left = `${leftPosition}px`;
+
+      // this.animationFrameId = requestAnimationFrame(update_menu_position);
+    }
+
+    cell.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      document.getElementById('floating-divs').appendChild(this.context_menu);
+      this.context_menu.classList.remove('hidden');
+      on_open();
+      update_menu_position();
+    });
+
+    this.context_menu.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!cell.contains(e.target) && !this.context_menu.contains(e.target)) {
+        if (document.getElementById('floating-divs').contains(this.context_menu)) {
+          document.getElementById('floating-divs').removeChild(this.context_menu);
+        }
+        this.context_menu.classList.add('hidden');
+        on_close();
+      }
+    });
+  }
+}
+
+
 class HTMLText {
-  constructor(inner='', css_classes=[], change_callback=()=>{}, sp='p', enter_enter=false, view_only=false) {
+  constructor(inner='', css_classes=[], change_callback=()=>{}, sp='p', enter_enter=false,
+              view_only=false, on_close=()=>{}) {
     this.span = document.createElement(sp);
     this.span.contentEditable = false;
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
@@ -223,6 +321,7 @@ class HTMLText {
         this.change_callback(this.span.innerHTML, this.value);
       }
       this.process();
+      on_close();
     });
 
     this.value = inner;
@@ -291,7 +390,6 @@ class HTMLSelectableText extends HTMLText {
     options.forEach(([id, v, el]) => {
       this.add_option(id, v, el);
     });
-    document.getElementById('mark-as-paid-buttons').appendChild(this.context_menu);
     this.animationFrameId = null;
 
     new Sortable(this.list, {
@@ -345,6 +443,7 @@ class HTMLSelectableText extends HTMLText {
     this.span.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
+      document.getElementById('floating-divs').appendChild(this.context_menu);
       this.context_menu.classList.remove('hidden');
       on_open();
       update_menu_position();
@@ -381,14 +480,21 @@ class HTMLSelectableText extends HTMLText {
             this.span.innerHTML = clickedItem.textvalue;
             console.log('TODO: selected', clicked_value, clickedItem.textvalue, this.options[clicked_value]);
             select_callback([clicked_value, clickedItem.textvalue, this.options[clicked_value]]);
+            if (document.getElementById('floating-divs').contains(this.context_menu)) {
+              document.getElementById('floating-divs').removeChild(this.context_menu);
+            }
             this.context_menu.classList.add('hidden');
           }
         }
+        on_close();
       }
     });
 
     document.addEventListener('click', (e) => {
       if (!this.span.contains(e.target) && !this.context_menu.contains(e.target)) {
+        if (document.getElementById('floating-divs').contains(this.context_menu)) {
+          document.getElementById('floating-divs').removeChild(this.context_menu);
+        }
         this.context_menu.classList.add('hidden');
         on_close();
       }
@@ -507,14 +613,21 @@ class HTMLTable {
     return row;
   };
 
-  add_row = (css_classes=[]) => {
-    const row = document.createElement('tr');
+  add_row = (css_classes=[], index=-1) => {
+    // const row = document.createElement('tr');
+    // console.log('inserting row in', index);
+    const row = this.table_body.insertRow(index);
     for (const css_class of css_classes) {
       row.classList.add(css_class);
     }
-    this.table_body.appendChild(row);
-    this.rows.push(row);
-    this.row_cells.push([]);
+    // this.table_body.appendChild(row);
+    if (index === undefined || index === -1) {
+      this.rows.push(row);
+      this.row_cells.push([]);
+    } else {
+      this.rows.splice(index, 0, row);
+      this.row_cells.splice(index, 0, []);
+    }
     return row;
   };
 
@@ -540,6 +653,12 @@ class HTMLTable {
     while (this.rows[row_index].firstChild) {
       this.rows[row_index].removeChild(this.rows[row_index].lastChild);
     }
+  }
+
+  delete_row = (row_index) => {
+    this.table_body.deleteRow(row_index);
+    this.rows.splice(row_index, 1);
+    this.row_cells.splice(row_index, 1);
   }
 }
 

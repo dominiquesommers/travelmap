@@ -201,8 +201,13 @@ abbr[title] {
 .season-cell {
   outline: 1px solid rgba(255, 255, 255, 0.84);
   padding: 2px;
-  color: #a9a9a9;
+  cursor: pointer;
+  /*color: rgba(169, 169, 169, 1);*/
+  color: rgba(0, 0, 0, 1);
   width: 8.3333333333%;
+}
+.season-cell-hidden-score {
+  color: rgba(255, 255, 255, 0);
 }
 
 .cost-cell-title {
@@ -227,6 +232,10 @@ abbr[title] {
 .costs-title-row.cell5 td {
   width: 16.666667%;
   padding: 3px;
+}
+
+.bold-text {
+  font-weight: bold;
 }
 
 .container {
@@ -491,7 +500,14 @@ html, body {
 
 .bg-grey {
   --tw-bg-opacity: 1;
-  background-color: oklch(0.967 0 89.876);
+  background-color: oklch(0.87 0 0 / 1);
+  /*oklch(0.967 0 89.876);*/
+}
+
+.bg-lightgrey {
+  --tw-bg-opacity: 1;
+  background-color: oklch(0.95 0 0 / 1);
+  /*oklch(0.967 0 89.876);*/
 }
 
 .border-gray-200 {
@@ -529,6 +545,10 @@ html, body {
 
 .opacity-04 {
   opacity: 0.4;
+}
+
+.opacity-0 {
+  opacity: 0;
 }
 
 

@@ -101,7 +101,12 @@ class MapHandler {
     const line_opacities = {'enabled': 1, 'highlighted': 1, 'disabled': 0.05};
 
     const icon_sizes = {'direction_car': 0.2, 'direction_boat': 0.2, 'direction_plane': 0.2, 'direction_bus': 0.2, 'direction_train': 0.2, 'direction_arrow': 0.12};
-    const line_colorss = {'enabled': '#ea5858', 'highlighted': 'rgba(255, 255, 255', 'highlighted2': 'rgba(234, 88, 176', 'disabled': 'rgba(0,0,0,0.03)'};
+    const line_colorss = {
+      'enabled': '#ea5858',
+      'highlighted': 'rgba(255, 255, 255',
+      'highlighted2': 'rgba(234, 88, 176',
+      'disabled': 'rgba(0,0,0,0.03)'
+    };
     const icon_opacities = {'enabled': 1, 'highlighted': 1, 'disabled': 0.05};
     ['disabled', 'enabled', 'highlighted'].forEach((color) => {
       Object.entries(images).forEach(([route_type, image]) => {
@@ -115,11 +120,13 @@ class MapHandler {
            'layout': { 'symbol-placement': 'line', 'symbol-spacing': 100, 'icon-allow-overlap': true,
              'icon-image': images[route_type], 'icon-size': icon_sizes[images[route_type]], 'visibility': 'visible' }});
 
-      this.map.on('mouseenter', `routes_${color}_${route_type}_icons`, (event) => {
-        this.route_hover_id = event.features[0].id;
-        this.routes.value[event.features[0].id].route_hover(event);
-      });
-      this.map.on('mouseleave', `routes_${color}_${route_type}_icons`, (event) => this.routes.value[this.route_hover_id].route_unhover(event));
+        this.map.on('mouseenter', `routes_${color}_${route_type}_icons`, (event) => {
+          this.route_hover_id = event.features[0].id;
+          this.routes.value[event.features[0].id].route_hover(event);
+        });
+        this.map.on('mouseleave', `routes_${color}_${route_type}_icons`, (event) => {
+          this.routes.value[this.route_hover_id].route_unhover(event)
+        });
       });
     });
     this.map.on('click', (event) => {

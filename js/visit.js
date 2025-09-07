@@ -40,7 +40,7 @@ class Place {
     this.country = country;
     this.coordinates = coordinates;
     this.season = (season !== undefined) ? season :
-        { jan: 1, feb: 1, mar: 1, apr: 1, may: 1, jun: 1, jul: 1, aug: 1, sep: 1, oct: 1, nov: 1, dec: 1, description: 'default', description_abbreviation: 'D' };
+        { jan: 1, feb: 1, mar: 1, apr: 1, may: 1, jun: 1, jul: 1, aug: 1, sep: 1, oct: 1, nov: 1, dec: 1, description: 'N/A', description_abbreviation: 'N/A' };
     this.estimated_costs = estimated_costs;
     this.actual_costs = actual_costs;
     this.paids = paids;

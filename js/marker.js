@@ -113,7 +113,6 @@ class VisitPopup {
       });
     }, this.visit.place.map_handler.view_only).select;
     rent_until_select.options[0].disabled = true;
-    console.log(until_visit);
 
     if (until_visit !== undefined && Array.from(rent_until_select.options).some((option) => option.value === until_visit.id)) {
       const base_route = this.visit.next_edge.value.route;

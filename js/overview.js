@@ -120,7 +120,6 @@ class Overview {
           if (data['status'] !== 'OK') console.log(data);
         });
       }, 'span', true, this.maphandler.view_only).span;
-      // trip_name_span.style.padding = '0px';
       this.title.appendChild(trip_name_span);
       const sep_span = document.createElement('span');
       sep_span.innerHTML = ' • ';
@@ -500,12 +499,12 @@ class Overview {
           const coordinates = Object.values(this.maphandler.places.value).filter(p => p.season === place.season).map(p => p.coordinates);
           this.maphandler.map.flyTo({'center': [coordinates.map(c => c.lat).reduce((a, b) => a + b) / coordinates.length, coordinates.map(c => c.lng).reduce((a, b) => a + b) / coordinates.length]});
         });
-        this.create_season_row(season_table, place, [[country_score['entry_date'], country_score['exit_date']]], country_score);
+        this.create_season_row(season_table, place, [[country_score['entry_date'], country_score['exit_date']]], country_score, 0, index);
       }
     });
   }
 
-  create_season_row = (season_table, place, entries, score, d=0) => {
+  create_season_row = (season_table, place, entries, score, d=0, row_index=0) => {
     const red = 'rgb(222, 25, 26)', green = 'rgb(15, 166, 40)', yellow = 'rgb(248, 161, 28)';
     const cells = [];
     ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].forEach((month, month_index) => {
@@ -513,7 +512,57 @@ class Overview {
       cells.push(cell);
       const season_score = place.season[month.toLowerCase()];
       const reason = place.season[`${month.toLowerCase()}_reason`];
-      cell.title = `${Math.round(season_score * 10)} (${reason})`
+
+      cell.classList.remove('season-cell-hidden-score');
+      const cell_description = new ClickableCell(cell, []);
+      cell.style.cursor = 'pointer';
+      const x1 = document.createElement('span');
+      x1.innerHTML = 'Score: ';
+      x1.style.paddingLeft = '4px';
+
+      const update_season = (reason, value) => {
+        const args = {'parameters': {'id': place.season.id,
+            'column': (reason) ? `${month.toLowerCase()}_reason` : month.toLowerCase(),
+            'value': (reason) ? value : Number(value) / 10}};
+        backend_communication.call_google_function('POST', 'update_season', args, (data) => {
+          if (data['status'] === 'OK') {
+            if (reason) {
+              place.season[`${month.toLowerCase()}_reason`] = value;
+            } else {
+              place.season[month.toLowerCase()] = Number(value) / 10;
+            }
+            this.update_route();
+            place.overview.add_season_table();
+          } else {
+            console.log(data);
+            alert(data.toString());
+          }
+        });
+      }
+
+      const score_span = new HTMLNumber(undefined,[],
+          (value) => update_season(false, value), this.maphandler.view_only);
+      score_span.span.innerHTML = Math.round(season_score * 10);
+      const description_text = new HTMLText(reason, [],
+          (value) => update_season(true, value), 'p', true, this.maphandler.view_only);
+      description_text.span.style.padding = '3px';
+      description_text.span.style.margin = '1px';
+      cell_description.context_menu.appendChild(x1);
+      cell_description.context_menu.appendChild(score_span.span);
+      cell_description.context_menu.appendChild(description_text.span);
+
+      // TODO make this cleaner.
+      let computedStyle = window.getComputedStyle(season_table.row_cells[0][1]);
+      const styling = {'font-size': '12px', 'font-weight': '350', 'color': 'rgb(0,0,0)'};
+      const propertiesToCopy = ['font-size', 'font-weight', 'color'];
+      propertiesToCopy.forEach(prop => {
+        [x1, score_span.span, description_text.span].forEach(el => {
+          // el.style[prop] = computedStyle.getPropertyValue(prop);
+          el.style[prop] = styling[prop];
+        });
+      });
+
+      cell.title = `(${Math.round(season_score * 10)}): ${reason} (dbl-click to edit)`
       const rgb_new = (season_score <= 0.5) ? interpolate_color(red, yellow, season_score*2) : interpolate_color(yellow, green, (season_score-0.5)*2);
       const rgb_string = `rgb(${rgb_new.r}, ${rgb_new.g}, ${rgb_new.b}, 0.3)`
       const rgb_string_opa = `rgb(${rgb_new.r}, ${rgb_new.g}, ${rgb_new.b}, 0.8)`
