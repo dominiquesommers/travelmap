@@ -209,14 +209,9 @@ class ClickableCell {
     this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; max-width: 200px;';
     this.context_menu.classList.add("hidden", "bg-grey", //"bg-lightgrey",
         "border", "border-gray-200", "rounded-lg", "shadow-xl");
-    // this.animationFrameId = null;
 
     const update_menu_position = () => {
       if (this.context_menu.classList.contains('hidden')) {
-        // if (this.animationFrameId) {
-        //   cancelAnimationFrame(this.animationFrameId);
-        //   this.animationFrameId = null;
-        // }
         return;
       }
       this.context_menu.style.top = `0px`;
@@ -237,17 +232,23 @@ class ClickableCell {
       }
       this.context_menu.style.top = `${topPosition}px`;
       this.context_menu.style.left = `${leftPosition}px`;
-
-      // this.animationFrameId = requestAnimationFrame(update_menu_position);
     }
 
-    cell.addEventListener('dblclick', (event) => {
+    const open = (event) => {
       event.preventDefault();
       event.stopPropagation();
       document.getElementById('floating-divs').appendChild(this.context_menu);
       this.context_menu.classList.remove('hidden');
       on_open();
       update_menu_position();
+    }
+
+    cell.addEventListener('touchend', (event) => {
+      open();
+    });
+
+    cell.addEventListener('dblclick', (event) => {
+      open();
     });
 
     this.context_menu.addEventListener('contextmenu', (event) => {
@@ -382,6 +383,7 @@ class HTMLSelectableText extends HTMLText {
     this.context_menu = document.createElement('div');
     // this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
     this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none;';
+    this.span.style['user-select'] = 'none';
     this.context_menu.classList.add("hidden", "bg-grey", "border", "border-gray-200", "rounded-lg", "shadow-xl");
     this.options = {};
     this.list = document.createElement('lu');
