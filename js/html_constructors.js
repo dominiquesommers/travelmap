@@ -234,21 +234,12 @@ class ClickableCell {
       this.context_menu.style.left = `${leftPosition}px`;
     }
 
-    const open = (event) => {
+    cell.addEventListener(('ontouchstart' in window) ? 'touchend' : 'click', (event) => {
       event.preventDefault();
-      event.stopPropagation();
       document.getElementById('floating-divs').appendChild(this.context_menu);
       this.context_menu.classList.remove('hidden');
       on_open();
       update_menu_position();
-    }
-
-    cell.addEventListener('touchend', (event) => {
-      open(event);
-    });
-
-    cell.addEventListener('dblclick', (event) => {
-      open(event);
     });
 
     this.context_menu.addEventListener('contextmenu', (event) => {
@@ -256,14 +247,16 @@ class ClickableCell {
       event.stopPropagation();
     });
 
-    document.addEventListener('click', (e) => {
-      if (!cell.contains(e.target) && !this.context_menu.contains(e.target)) {
+    document.addEventListener(('ontouchstart' in window) ? 'touchend' : 'click', (event) => {
+      event.preventDefault();
+      if (!cell.contains(event.target) && !this.context_menu.contains(event.target)) {
         if (document.getElementById('floating-divs').contains(this.context_menu)) {
           document.getElementById('floating-divs').removeChild(this.context_menu);
+          this.context_menu.classList.add('hidden');
+          on_close();
         }
-        this.context_menu.classList.add('hidden');
-        on_close();
       }
+      event.stopPropagation();
     });
   }
 }
