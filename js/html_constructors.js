@@ -473,12 +473,13 @@ class HTMLSelectableText extends HTMLText {
             e.stopPropagation();
           } else {
             this.span.innerHTML = clickedItem.textvalue;
+            this.value = clickedItem.textvalue;
             console.log('TODO: selected', clicked_value, clickedItem.textvalue, this.options[clicked_value]);
             select_callback([clicked_value, clickedItem.textvalue, this.options[clicked_value]]);
             if (document.getElementById('floating-divs').contains(this.context_menu)) {
               document.getElementById('floating-divs').removeChild(this.context_menu);
+              this.context_menu.classList.add('hidden');
             }
-            this.context_menu.classList.add('hidden');
           }
         }
         on_close();
