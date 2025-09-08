@@ -387,25 +387,24 @@ class VisitPopup {
       table_constructor.add_row();
     }
 
-    const cell1 = table_constructor.add_cell(0, ['leftie'], 3);
-    cell1.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 341.333 341.333" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M170.667 0C76.41 0 0 76.41 0 170.667s76.41 170.667 170.667 170.667 170.667-76.41 170.667-170.667S264.923 0 170.667 0zm0 298.667c-70.692 0-128-57.308-128-128s57.308-128 128-128 128 57.308 128 128-57.308 128-128 128z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    const cell2 = table_constructor.add_cell(0, ['adjacent-visit', 'previous']);
-    cell2.appendChild(this.previous_visit);
-    this.previous_visit.classList.add('pointer');
+    const cell1 = table_constructor.add_cell(0, ['transport']);
+    cell1.appendChild(this.previous_edge_type);
+    table_constructor.add_cell(0, ['leftie']);
 
-    const cell3 = table_constructor.add_cell(1, ['transport']);
-    cell3.appendChild(this.previous_edge_type);
-
-    // cell3.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 45.437 45.437" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M41.403 11.11c-.371-3.627-.962-6.451-1.897-7.561-3.855-4.564-30.859-4.898-33.925 0-.75 1.2-1.276 4.014-1.629 7.567a2.287 2.287 0 0 0-2.026 2.267v4.443a2.29 2.29 0 0 0 1.5 2.146c-.207 6.998-.039 14.299.271 17.93 0 2.803 1.883 2.338 1.883 2.338h1.765v3.026c0 1.2 1.237 2.171 2.761 2.171 1.526 0 2.763-.971 2.763-2.171V40.24h20.534v3.026c0 1.2 1.236 2.171 2.762 2.171 1.524 0 2.761-.971 2.761-2.171V40.24h.58s2.216.304 2.358-1.016c0-3.621.228-11.646.04-19.221a2.28 2.28 0 0 0 1.607-2.177v-4.443a2.284 2.284 0 0 0-2.108-2.273zM12.176 4.2h20.735v3.137H12.176V4.2zm.296 32.467a2.947 2.947 0 1 1 0-5.895 2.947 2.947 0 0 1 0 5.895zm20.328 0a2.948 2.948 0 1 1-.002-5.892 2.948 2.948 0 0 1 .002 5.892zm3.747-12.9H8.54V9.077h28.007v14.69z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    const cell4 = table_constructor.add_cell(1, ['leftie']);
-    cell4.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 16 16" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M9.414.586a2 2 0 1 1-2.828 2.828A2 2 0 0 1 9.414.586M9.414 6.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828M9.414 12.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    this.prev_route_details_cell = table_constructor.add_cell(1, ['route-details']);
+    this.prev_route_details_cell = table_constructor.add_cell(0, ['route-details']);
     this.prev_route_details_cell.classList.add('hidden');
     const divider = document.createElement('span');
     divider.innerHTML = 'h<br>€'
     this.prev_route_details_cell.appendChild(this.previous_edge_duration);
     this.prev_route_details_cell.appendChild(divider);
     this.prev_route_details_cell.appendChild(this.previous_edge_cost);
+
+    // const cell1 = table_constructor.add_cell(0, ['leftie'], 3);
+    // cell1.innerHTML = ''; //<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 341.333 341.333" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M170.667 0C76.41 0 0 76.41 0 170.667s76.41 170.667 170.667 170.667 170.667-76.41 170.667-170.667S264.923 0 170.667 0zm0 298.667c-70.692 0-128-57.308-128-128s57.308-128 128-128 128 57.308 128 128-57.308 128-128 128z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    const cell2 = table_constructor.add_cell(0, ['adjacent-visit', 'previous']);
+    cell2.appendChild(this.previous_visit);
+    this.previous_visit.classList.add('pointer');
+    table_constructor.add_cell(1, [], 3);
 
     const cell_rent2 = table_constructor.add_cell(1, ['route-details']);
     cell_rent2.appendChild(this.previous_edge_rent);
@@ -494,22 +493,24 @@ class VisitPopup {
     this.update_exit_date(this.visit.exit_date.value);
     this.exit_date_span.classList.add('current-dates');
 
-    const cell8 = table_constructor.add_cell(3, ['transport']);
+    table_constructor.add_cell(3, [], 3);
+    const cell_rent = table_constructor.add_cell(3, ['route-details']);
+    cell_rent.appendChild(this.next_edge_rent);
+    cell_rent.style = 'padding: 0px 5px 0px 5px';
+
+    const cell8 = table_constructor.add_cell(4, ['transport']);
     cell8.appendChild(this.next_edge_type);
-    const cell9 = table_constructor.add_cell(3, ['leftie']);
-    cell9.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 16 16" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M9.414.586a2 2 0 1 1-2.828 2.828A2 2 0 0 1 9.414.586M9.414 6.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828M9.414 12.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    this.next_route_details_cell = table_constructor.add_cell(3, ['route-details']);
+    const cell9 = table_constructor.add_cell(4, ['leftie']);
+    cell9.innerHTML = '';//<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 16 16" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M9.414.586a2 2 0 1 1-2.828 2.828A2 2 0 0 1 9.414.586M9.414 6.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828M9.414 12.586a2 2 0 1 1-2.828 2.828 2 2 0 0 1 2.828-2.828" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    this.next_route_details_cell = table_constructor.add_cell(4, ['route-details']);
     const divider2 = document.createElement('span');
     divider2.innerHTML = 'h<br>€'
     this.next_route_details_cell.appendChild(this.next_edge_duration);
     this.next_route_details_cell.append(divider2);
     this.next_route_details_cell.appendChild(this.next_edge_cost);
-    const cell_rent = table_constructor.add_cell(3, ['route-details']);
-    cell_rent.appendChild(this.next_edge_rent);
-    cell_rent.style = 'padding: 0px 5px 0px 5px';
 
-    const cell11 = table_constructor.add_cell(4, ['leftie'], 3);
-    cell11.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 341.333 341.333" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M170.667 0C76.41 0 0 76.41 0 170.667s76.41 170.667 170.667 170.667 170.667-76.41 170.667-170.667S264.923 0 170.667 0zm0 298.667c-70.692 0-128-57.308-128-128s57.308-128 128-128 128 57.308 128 128-57.308 128-128 128z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+    // const cell11 = table_constructor.add_cell(4, ['leftie'], 3);
+    // cell11.innerHTML = '';//<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 341.333 341.333" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M170.667 0C76.41 0 0 76.41 0 170.667s76.41 170.667 170.667 170.667 170.667-76.41 170.667-170.667S264.923 0 170.667 0zm0 298.667c-70.692 0-128-57.308-128-128s57.308-128 128-128 128 57.308 128 128-57.308 128-128 128z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     const cell12 = table_constructor.add_cell(4, ['adjacent-visit', 'next']);
 
     const next_edge_div = document.createElement('div');
