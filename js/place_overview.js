@@ -116,6 +116,7 @@ class PlaceOverview {
   }
 
   add_seasonality = () => {
+    this.season_div.innerHTML = '';
     const season_title = document.createElement('h3');
     this.season_div.appendChild(season_title);
     const title = document.createElement('span');
@@ -160,9 +161,29 @@ class PlaceOverview {
         }
       });
     }
-    const on_season_delete = (new_value) => {
-      console.log('todo season_delete');
-      // TODO Make sure the season is not selected for any place (if so, show those places.)
+    const on_season_delete = (deleted_season) => {
+      // Will cause a foreign key constraint error when the season is still referenced somewhere.
+      //   TODO parse the error correctly.
+      if (confirm('Are you sure you want to delete this season?')) {
+        const args = { 'parameters': {'season_id': deleted_season[0] }};
+        backend_communication.call_google_function('POST',
+              'remove_season', args, (data) => {
+          if (data['status'] === 'OK') {
+            if (document.getElementById('floating-divs').contains(this.season_select.context_menu)) {
+              document.getElementById('floating-divs').removeChild(this.season_select.context_menu);
+              this.season_select.context_menu.classList.add('hidden');
+              on_close();
+            }
+            this.place.country.seasons = this.place.country.seasons.filter(season => Number(season.id) !== Number(deleted_season[0]));
+            console.log(this.place.country.seasons);
+            this.add_seasonality();
+            this.add_season_table();
+          } else {
+            console.log(data);
+            alert(`Can't delete season, check if it is still referenced somewhere.`)
+          }
+        });
+      }
     }
     const on_season_order_changed = (dragged_value, new_order) => {
       console.log('todo season_order_changed');
@@ -184,7 +205,26 @@ class PlaceOverview {
     }
     this.add_season_span.innerHTML = '➕';
     this.add_season_span.addEventListener('click', () => {
-      console.log('todo add season.')
+      console.log('todo add season.');
+      console.log(this.place.country.id);
+      console.log(this.place.country.seasons);
+      const new_season = { jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0, jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0,
+        description: 'NEW SEASON', description_abbreviation: 'NEW', jan_reason: null, feb_reason: null, mar_reason: null,
+        apr_reason: null, may_reason: null, jun_reason: null, jul_reason: null, aug_reason: null, sep_reason: null, oct_reason: null, nov_reason: null, dec_reason: null }
+      const args = { 'parameters': {'country_id': this.place.country.id }};
+      backend_communication.call_google_function('POST',
+            'add_season', args, (data) => {
+        if (data['status'] === 'OK') {
+          new_season.id = data['season_id'];
+          this.place.country.seasons.push(new_season);
+          console.log(this.place.country.seasons)
+          this.add_seasonality();
+          this.add_season_table();
+        } else {
+          console.log(data);
+          alert(`Can't create new season, check if it a season already exists with name: 'NEW SEASON'.`)
+        }
+      });
     });
 
     this.season_table_div = document.createElement('div');
@@ -299,8 +339,6 @@ class PlaceOverview {
       cost_span.estimated_cost.span.innerHTML = this.place.estimated_costs[cost_type];
       cost_span.actual_cost.span.innerHTML = this.place.actual_costs[cost_type]; // TODO fix
       cost_cell.appendChild(cost_span.span);
-      // cost_span.innerHTML = this.place.costs[cost_type];
-      // cost_cell.appendChild(cost_span);
     });
   }
 
@@ -472,13 +510,13 @@ class PlaceOverview {
         } else {
           const args = {'parameters': {'activity_id': activity_id}};
           backend_communication.call_google_function('POST',
-              'remove_activity', args, (data) => {
-                if (data['status'] === 'OK') {
-                  this.activities_table.table.deleteRow(row.rowIndex);
-                } else {
-                  console.log(data)
-                }
-              });
+            'remove_activity', args, (data) => {
+              if (data['status'] === 'OK') {
+                this.activities_table.table.deleteRow(row.rowIndex);
+              } else {
+                console.log(data)
+              }
+            });
         }
       }
     });
