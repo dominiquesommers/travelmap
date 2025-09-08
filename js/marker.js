@@ -484,14 +484,16 @@ class VisitPopup {
     divider3.innerHTML = '<br>'
     current_visit_cell.appendChild(this.entry_date_span);
     this.update_entry_date(this.visit.entry_date.value);
-    this.entry_date_span.classList.add('current-dates')
-    const divider4 = document.createElement('span');
-    divider4.classList.add('current-dates')
-    divider4.innerHTML = ' - '
-    current_visit_cell.appendChild(divider4);
-    current_visit_cell.appendChild(this.exit_date_span);
-    this.update_exit_date(this.visit.exit_date.value);
-    this.exit_date_span.classList.add('current-dates');
+    this.entry_date_span.classList.add('current-dates');
+    if (this.visit.nights.value > 0) {
+      const divider4 = document.createElement('span');
+      divider4.classList.add('current-dates');
+      divider4.innerHTML = ' - ';
+      current_visit_cell.appendChild(divider4);
+      current_visit_cell.appendChild(this.exit_date_span);
+      this.update_exit_date(this.visit.exit_date.value);
+      this.exit_date_span.classList.add('current-dates');
+    }
 
     table_constructor.add_cell(3, [], 3);
     const cell_rent = table_constructor.add_cell(3, ['route-details']);
