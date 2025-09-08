@@ -244,11 +244,11 @@ class ClickableCell {
     }
 
     cell.addEventListener('touchend', (event) => {
-      open();
+      open(event);
     });
 
     cell.addEventListener('dblclick', (event) => {
-      open();
+      open(event);
     });
 
     this.context_menu.addEventListener('contextmenu', (event) => {
