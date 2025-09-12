@@ -615,6 +615,12 @@ html, body {
   font-weight: 500
 }
 
+
+.close-button {
+  position: absolute;
+  right: 5px;
+  cursor: pointer;
+}
 /*.destination-marker .number {*/
 /*  color: #4E7195;*/
 /*  font-size: 0.875rem;*/

@@ -209,6 +209,10 @@ class ClickableCell {
     this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; max-width: 200px;';
     this.context_menu.classList.add("hidden", "bg-grey", //"bg-lightgrey",
         "border", "border-gray-200", "rounded-lg", "shadow-xl");
+    const close_button = document.createElement('span');
+    close_button.textContent = 'x';
+    close_button.classList.add('close-button')
+    this.context_menu.appendChild(close_button);
 
     const update_menu_position = () => {
       if (this.context_menu.classList.contains('hidden')) {
@@ -247,17 +251,27 @@ class ClickableCell {
       event.stopPropagation();
     });
 
-    document.addEventListener(('ontouchstart' in window) ? 'touchend' : 'click', (event) => {
-      event.preventDefault();
-      if (!cell.contains(event.target) && !this.context_menu.contains(event.target)) {
-        if (document.getElementById('floating-divs').contains(this.context_menu)) {
-          document.getElementById('floating-divs').removeChild(this.context_menu);
-          this.context_menu.classList.add('hidden');
-          on_close();
-        }
+    close_button.addEventListener(('ontouchstart' in window) ? 'touchend' : 'click', (event) => {
+      if (document.getElementById('floating-divs').contains(this.context_menu)) {
+        document.getElementById('floating-divs').removeChild(this.context_menu);
+        this.context_menu.classList.add('hidden');
+        on_close();
       }
       event.stopPropagation();
     });
+
+    // TODO fix the following, very slow to respond.
+    // document.addEventListener(('ontouchstart' in window) ? 'touchend' : 'click', (event) => {
+    //   event.preventDefault();
+    //   if (!cell.contains(event.target) && !this.context_menu.contains(event.target)) {
+    //     if (document.getElementById('floating-divs').contains(this.context_menu)) {
+    //       document.getElementById('floating-divs').removeChild(this.context_menu);
+    //       this.context_menu.classList.add('hidden');
+    //       on_close();
+    //     }
+    //   }
+    //   event.stopPropagation();
+    // });
   }
 }
 

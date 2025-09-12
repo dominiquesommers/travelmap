@@ -5,6 +5,7 @@ class Graph {
     this.map_handler = map_handler;
     this.map_handler.places.subscribe(this.places_changed);
     this.initializing_data = false;
+    this.sorted_covered_visits = [];
     // this._visits = {};
   }
 
@@ -41,25 +42,44 @@ class Graph {
       return;
     }
 
-    this.sorted_covered_visits = [];
+    const t0 = performance.now();
     console.log('updating route.')
     const source_place = Object.values(this.map_handler.places.value).find((p) => p.name === 'Eindhoven');
     if (source_place === undefined || source_place.visits.value.length ===  0 || !source_place.visits.value[0].included.value) { return; }
     const source_visit = source_place.visits.value[0];
+
+    const t1 = performance.now();
+    const previous_sorted_visits = this.sorted_covered_visits;
+    this.sorted_covered_visits = [];
+
+    // new Set(previous_sorted_visits.map(visit => visit.place.country)).forEach(country => {
+    //   country.visits.value = [];
+    // });
+
+    // previous_sorted_visits.forEach(visit => {
+    //   ['covered', 'uncovered', 'excluded'].forEach(cl => visit.place.marker.visit_cells[visit.place.visits.value.indexOf(visit)].classList.remove(cl));
+    //   visit.previous_edge.value = undefined;
+    //   visit.next_edge.value = undefined;
+    //   visit.entry_date.value = undefined;
+    //   visit.exit_date.value = undefined;
+    //   visit._outgoing_edges.value.forEach((edge) => {
+    //     edge.route.set_disabled();
+    //     edge.route.traverses.value = [];
+    //   });
+    // });
 
     Object.values(this.map_handler.places.value).forEach((place) => {
       place.visits.value.forEach((visit) => {
         ['covered', 'uncovered', 'excluded'].forEach(cl => visit.place.marker.visit_cells[visit.place.visits.value.indexOf(visit)].classList.remove(cl));
         visit.previous_edge.value = undefined;
         visit.next_edge.value = undefined;
-        visit.entry_date.value = undefined;
-        visit.exit_date.value = undefined;
         visit._outgoing_edges.value.forEach((edge) => {
-            edge.route.set_disabled();
-            edge.route.traverses.value = [];
+          edge.route.set_disabled();
+          edge.route.traverses.value = [];
         });
       });
     });
+
 
     // route.traverses.value = [...route.traverses.value, date];
 
@@ -68,6 +88,8 @@ class Graph {
     const covered_visits = new Set([current_visit]);
     this.sorted_covered_visits.push(current_visit);
     const covered_routes = new Set();
+    const t2 = performance.now();
+    console.log(`resetting route. ${t2 - t1} (${previous_sorted_visits.length} visits)`)
     while (true) {
       current_visit.place.marker.visit_cells[current_visit.place.visits.value.indexOf(current_visit)].classList.add('covered');
       current_visit.next_edge.value = current_visit._outgoing_edges.value.find((edge) => (edge.destination.included.value && !covered_visits.has(edge.destination)));
@@ -113,7 +135,10 @@ class Graph {
       });
     });
 
+    const t4 = performance.now();
     this.update_dates();
+    const t5 = performance.now();
+    console.log(`update dates. ${t5 - t4}`)
     this.update_rent_info();
     // this.update_cost_info();
     this.map_handler.overview.update_route(this.sorted_covered_visits[0]);
@@ -131,13 +156,19 @@ class Graph {
     let current_country = undefined;
     let current_date = new Date(`${this.map_handler.overview.start_date.value}T00:00:00.000+00:00`);
     current_date = (isNaN(current_date)) ? new Date(this.map_handler.overview.start_date.value) : current_date;
+    console.log(current_date);
     let previous_visit = undefined;
+    const countries = new Set();
     this.sorted_covered_visits.forEach(visit => {
       const route_nights = (previous_visit === undefined) ? 0 : previous_visit?.next_edge.value.route.nights.value;
       current_date.setDate(current_date.getDate() + route_nights);
       visit.entry_date.value = new Date(Date.UTC(current_date.getUTCFullYear(), current_date.getUTCMonth(), current_date.getUTCDate()));
       current_date.setDate(current_date.getDate() + visit.nights.value);
       visit.exit_date.value = new Date(Date.UTC(current_date.getUTCFullYear(), current_date.getUTCMonth(), current_date.getUTCDate()));
+      // if (!countries.has(visit.place.country)) {
+      //   visit.place.country.visits.value = [];
+      //   countries.add(visit.place.country);
+      // }
       if (visit.place.country !== current_country) {
         current_country = visit.place.country;
         visit.place.country.visits.value = [...visit.place.country.visits.value, [visit.entry_date.value, visit.exit_date.value]];
