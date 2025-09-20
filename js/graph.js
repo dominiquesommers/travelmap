@@ -142,6 +142,10 @@ class Graph {
     this.update_rent_info();
     // this.update_cost_info();
     this.map_handler.overview.update_route(this.sorted_covered_visits[0]);
+    Object.values(this.map_handler.places.value).forEach(place => {
+      place.marker.set_border_color();
+      place.marker.set_add_visit_background();
+    })
   }
 
   update_dates = () => {

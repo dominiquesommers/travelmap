@@ -660,49 +660,88 @@ class PlaceMarker {
   create_cells = () => {
     const cell_classes = this.visit_cells?.map(cell => Array.from(cell.classList));
     this.visit_cells = [];
-    this.place.visits.value?.forEach((visit, index) => {
-      const cell = this.pill.add_cell(0, (cell_classes[index]) ? cell_classes[index] : ['number']);
-      if (this.add_visit_clicked && !cell_classes[index]) cell.classList.add((!visit.included) ? 'excluded' : 'uncovered');
-      this.visit_cells.push(cell);
-      cell.addEventListener('click', this.set_popup);
-      if (index === 0) cell.classList.add('left-cell');
-      (index === this.place.visits.value.length - 1) ? cell.classList.add('right-cell') : cell.classList.remove('right-cell');
-
+    let last_cell = undefined;
+    const empty_cell_size = '8px';
+    if (this.place.visits.value.length === 0) {
+      const cell = this.pill.add_cell(0, []);
+      last_cell = cell;
+      cell.style.width = empty_cell_size;
+      cell.style.height = empty_cell_size;
+      cell.classList.add('uncovered');
+      this.set_border_color();
       cell.addEventListener('mouseover', () => {
         this.plus_cell.classList.remove('hidden');
-        this.visit_cells[this.visit_cells.length - 1].classList.remove('right-cell');
-
-        this.marker.setOffset([6.5, 4]);
+        cell.classList.add('hidden');
+        cell.style.width = '0px';
+        this.marker.setOffset([0, 0]);
       });
       cell.addEventListener('mouseleave', () => {
         this.plus_cell.classList.add('hidden');
-        this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
-        this.marker.setOffset([0, 4]);
+        cell.classList.remove('hidden');
+        cell.style.width = empty_cell_size;
+        this.marker.setOffset([0, 5]);
       });
-    });
+    } else {
+      this.place.visits.value?.forEach((visit, index) => {
+        const cell = this.pill.add_cell(0, (cell_classes[index]) ? cell_classes[index] : ['number']);
+        last_cell = cell;
+        if (this.add_visit_clicked && !cell_classes[index]) cell.classList.add((!visit.included) ? 'excluded' : 'uncovered');
+        this.visit_cells.push(cell);
+        cell.addEventListener('click', this.set_popup);
+        if (index === 0) cell.classList.add('left-cell');
+        (index === this.place.visits.value.length - 1) ? cell.classList.add('right-cell') : cell.classList.remove('right-cell');
+
+        cell.addEventListener('mouseover', () => {
+          this.plus_cell.classList.remove('hidden');
+          this.visit_cells[this.visit_cells.length - 1].classList.remove('right-cell');
+
+          this.marker.setOffset([6.5, 4]);
+        });
+        cell.addEventListener('mouseleave', () => {
+          this.plus_cell.classList.add('hidden');
+          this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
+          this.marker.setOffset([0, 4]);
+        });
+      });
+    }
+
     this.plus_cell = this.pill.add_cell(0, ['number', 'right-cell']);
     this.plus_cell.addEventListener('click', (event) => {
       event.stopPropagation();
       if (this.place.map_handler.view_only) { return; }
       this.set_popup(event);
     });
-    if (this.place.visits.value?.length > 0) {
+    if (this.place.visits.value?.length > 0 || true) {
       this.plus_cell.addEventListener('mouseover', () => {
         this.plus_cell.classList.remove('hidden');
-        this.visit_cells[this.visit_cells.length - 1].classList.remove('right-cell');
-        this.marker.setOffset([6.5, 4]);
+        if (this.place.visits.value.length === 0 ) {
+          last_cell.style.width = '0px';
+          this.marker.setOffset([0, 0]);
+        } else {
+          this.visit_cells[this.visit_cells.length - 1]?.classList.remove('right-cell');
+          this.marker.setOffset([6.5, 4]);
+        }
       });
       this.plus_cell.addEventListener('mouseleave', () => {
         this.plus_cell.classList.add('hidden');
-        this.visit_cells[this.visit_cells.length - 1].classList.add('right-cell');
-        this.marker.setOffset([0, 4]);
+        if (this.place.visits.value.length === 0 ) {
+          last_cell.style.width = empty_cell_size;
+          this.marker.setOffset([0, 5]);
+        } else {
+          this.visit_cells[this.visit_cells.length - 1]?.classList.add('right-cell');
+          this.marker.setOffset([0, 4]);
+        }
       });
       this.plus_cell.classList.add('hidden');
     } else {
       this.plus_cell.classList.add('left-cell');
     }
+    if (this.place.visits.value?.length === 0) {
+      this.plus_cell.classList.add('left-cell');
+    }
     this.plus_cell.innerHTML = '+';
     this.add_visit_clicked = false;
+    this.set_add_visit_background();
   }
 
   set_popup = (event, visit=undefined) => {
@@ -762,6 +801,46 @@ class PlaceMarker {
       'top-left': [x_offset, pill_height + h], 'top-right': [x_offset, pill_height + h],
       'bottom-left': [x_offset, h], 'bottom-right': [x_offset, h]
     };
+  }
+
+  zoomed = (show) => {
+    if (show) {
+      this.pill.table.style.opacity = 1;
+      this.clear_cells();
+      this.create_cells();
+      this.update_cell_values();
+      this.marker.setOffset([0, 4]);
+      this.set_border_color();
+      this.set_add_visit_background();
+    } else {
+      this.clear_cells();
+      const cell = this.pill.add_cell(0, []);
+      this.set_border_color();
+      if (!this.place.visits.value.some(visit => visit.previous_edge.value || visit.next_edge.value)) {
+        cell.classList.add('uncovered');
+        this.pill.table.style.opacity = 0.7;
+        cell.style = 'width: 5px; height: 5px;';
+      } else {
+        cell.classList.remove('uncovered');
+        this.pill.table.style.opacity = 1;
+        cell.style = 'width: 8px; height: 8px;';
+      }
+
+      this.marker.setOffset([0, -4]);
+    }
+  }
+
+  set_border_color = () => {
+    const border_color = (!this.place.visits.value.some(visit => visit.previous_edge.value || visit.next_edge.value)) ?
+        '#404040' //'#96002f'
+        : '#4E7195';
+    this.pill.table.style.border = `1.2px solid ${border_color}`;
+  }
+
+  set_add_visit_background = () => {
+    this.plus_cell.style.background = (!this.place.visits.value.some(visit => visit.previous_edge.value || visit.next_edge.value)) ?
+        'rgba(145, 145, 145, 0.5)' :
+        'rgba(255, 255, 255, 0.6)'
   }
 
   clear_cells = () => {

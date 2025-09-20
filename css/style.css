@@ -371,17 +371,18 @@ html, body {
 .destination-marker:hover, .destination-marker.hover {
   z-index: 120;
   /*background: #8ea7ad;*/
-  background: #859cbb;
+  /*background: #859cbb; this one*/
   animation: beacon-green 1s ease infinite
 }
 
 .destination-marker:hover .number, .destination-marker.hover .number {
-  color: #fff;
-  background: #859cbb;
+  /*color: #fff;*/
+  /*background: #859cbb;*/
 }
 
 .destination-marker .number:hover, .destination-marker.number.hover {
-  background: #4E7195;
+  /*background: #4E7195;*/
+  font-weight: bolder;
 }
 
 .season .number {

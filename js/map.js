@@ -48,17 +48,11 @@ class MapHandler {
       const zoom = this.map.getZoom();
       if (this.previous_zoom && this.previous_zoom < threshold && zoom > threshold) {
         Object.values(this.places.value).forEach(place => {
-          place.marker.clear_cells();
-          place.marker.create_cells();
-          place.marker.update_cell_values();
-          place.marker.marker.setOffset([0, 4]);
+          place.marker.zoomed(true);
         });
       } else if (this.previous_zoom && this.previous_zoom > threshold && zoom < threshold) {
         Object.values(this.places.value).forEach(place => {
-          place.marker.clear_cells();
-          const cell = place.marker.pill.add_cell(0, []);
-          cell.style = 'width: 8px; height: 8px;';
-          place.marker.marker.setOffset([0, -4]);
+          place.marker.zoomed(false);
         });
       }
       this.previous_zoom = zoom;
