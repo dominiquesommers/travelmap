@@ -209,10 +209,7 @@ class Visit {
   add_outgoing_edge = (destination, route, priority, rent_until, includes_accommodation, update_db, index=-1) => {
     index = -1;
     if (update_db) {
-      // TODO compute priority.
-      const priority = (this._outgoing_edges.length > 0) ? Math.max(...this._outgoing_edges.value.map((edge) => edge.priority)) + 1 : 0;
-      console.log('priority');
-      console.log(priority);
+      const priority = (this._outgoing_edges.value.length > 0) ? Math.min(...this._outgoing_edges.value.map((edge) => edge.priority)) - 1 : 0;
       const args = { 'parameters': {'source_visit_id': this.id, 'destination_visit_id': destination.id,
           'route_id': route.id, 'priority': priority, 'plan_id': this.place.map_handler.plan_id} };
       backend_communication.call_google_function('POST',
@@ -223,20 +220,9 @@ class Visit {
           console.log(data);
         }
       });
-      // backend_communication.fetch('/travel/add_edge/', args, (data) => {
-      //   if (data['status'] === 'OK') {
-      //     this.add_outgoing_edge(destination, route, priority, rent_until, includes_accommodation, false, index);
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
     } else {
       const edge = new Edge(this, destination, route, priority, rent_until, includes_accommodation);
-      if (index === -1) {
-        this._outgoing_edges.value = [...this._outgoing_edges.value, edge];
-      } else {
-        this._outgoing_edges.value = [...this._outgoing_edges.value.slice(0, index), edge, ...this._outgoing_edges.value.slice(index)];
-      }
+      this._outgoing_edges.value = [...this._outgoing_edges.value, edge].sort((a, b) => a.priority - b.priority);
     }
   };
 

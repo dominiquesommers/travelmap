@@ -69,10 +69,13 @@ class VisitPopup {
     }
   }
 
-  update_next_route_info = (edge) => {
-    this.next_edge_type.innerHTML = transport_icons[edge?.route.route_type.value];
-    this.next_edge_duration.innerHTML = Math.round(edge?.route.duration.value);
-    this.next_edge_cost.innerHTML = `${Math.round(edge?.route.estimated_cost.value)}${(edge?.route.route_type.value === 'driving') ? '/d' : ''}`;
+  update_next_route_info = (value) => {
+    const edge = (value instanceof Edge) ? value : this.visit.next_edge.value;
+    if (edge) {
+      this.next_edge_type.innerHTML = transport_icons[edge?.route.route_type.value];
+      this.next_edge_duration.innerHTML = Math.round(edge?.route.duration.value);
+      this.next_edge_cost.innerHTML = `${Math.round(edge?.route.estimated_cost.value)}${(edge?.route.route_type.value === 'driving') ? '/d' : ''}`;
+    }
   }
 
   update_rent_info = () => {
@@ -346,7 +349,7 @@ class VisitPopup {
               [[this.visit.place.coordinates.lat, this.visit.place.coordinates.lng], [new_destination.place.coordinates.lat, new_destination.place.coordinates.lng]],
               [], (new_route) => {
             if (new_route !== undefined) {
-              const new_edge = this.visit.add_outgoing_edge(new_destination, new_route, undefined, undefined, undefined, true);
+              const new_edge = this.visit.add_outgoing_edge(new_destination, new_route, undefined, undefined, undefined, true, 0);
                   // new Edge(this.visit, new_destination, new_route));
             } else {
               console.log('Route did already exist (should not be able to happen).')
@@ -355,7 +358,7 @@ class VisitPopup {
         }
       } else {
         if (new_destination.place === this.visit.place.map_handler.new_edge_route.destination) {
-          const new_edge = this.visit.add_outgoing_edge(new_destination, this.visit.place.map_handler.new_edge_route, undefined, undefined, undefined, true);
+          const new_edge = this.visit.add_outgoing_edge(new_destination, this.visit.place.map_handler.new_edge_route, undefined, undefined, undefined, true, 0);
         } else {
           console.log('Selected destination is a different place than the destination of the selected route.')
         }
@@ -525,7 +528,9 @@ class VisitPopup {
       this.add_edge_span.classList.remove('hidden');
     }
     const on_close = () => {
-      this.add_edge_span.classList.add('hidden');
+      if (this.next_edge_list.context_menu.classList.contains('hidden')) {
+        this.add_edge_span.classList.add('hidden');
+      }
     }
 
     const order_change_callback = (selected_edge_option, new_order) => {

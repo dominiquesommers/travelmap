@@ -385,8 +385,9 @@ class Route {
           `?access_token=${mapboxgl.accessToken}&geometries=geojson`;
       $.get(query, (data) => {
         if (data['code'] === 'NoRoute') {
-          // TODO handle.
+          console.log('No route found!')
         } else {
+          console.log('Route found!')
           this.duration.value = Math.max(1, data.routes[0].duration / 3600);
           this.distance.value = Math.max(1, data.routes[0].distance / 1000);
           this.route.value = data.routes[0].geometry.coordinates;
