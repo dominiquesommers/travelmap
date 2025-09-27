@@ -325,11 +325,11 @@ class MapHandler {
     if (route_id === undefined) {
       const args = { 'parameters': {'source_id': source_id, 'destination_id': destination_id, 'route_type': route_type,
                                                      'distance': distance, 'duration': duration, 'estimated_cost': estimated_cost,
-                                                     'actual_cost': actual_cost, '': paid, 'nights': nights, 'route': route, 'trip_id': this.trip_id} };
+                                                     'actual_cost': actual_cost, 'paid': paid, 'nights': nights, 'route': route, 'trip_id': this.trip_id} };
       backend_communication.call_google_function('POST',
         'add_route', args, (data) => {
         if (data['status'] === 'OK') {
-          callback(this.add_route(data['route_id'], source_id, destination_id, route_type, distance, duration, estimated_cost, actual_cost, paid, nights, route));
+          callback(this.add_route(data['route_id'], source_id, destination_id, route_type, distance, duration, estimated_cost, actual_cost, paid, nights, route, route_notes));
         } else {
           console.log(data);
           callback(undefined);
@@ -348,6 +348,11 @@ class MapHandler {
 
   remove_route = (route) => {
     route.popup.remove();
+    const reverse_route = Object.values(this.routes.value).find(
+        rev_route => rev_route.source === route.destination && rev_route.destination === route.source && rev_route.route_type.value === route.route_type.value);
+    if (reverse_route !== undefined) {
+      reverse_route.route_popup.add_reversity();
+    }
     this.map.removeLayer(route.route_layer_id);
     this.map.removeLayer(route.route_arrow_layer_id);
     this.map.removeSource(route.route_source_id);

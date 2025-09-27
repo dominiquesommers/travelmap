@@ -130,6 +130,21 @@ class RoutePopup {
       }
     });
 
+    const divider4 = document.createElement('span');
+    divider4.innerHTML = ' '
+    cell5.appendChild(divider4);
+
+    this.reverse_span = document.createElement('span');
+    cell5.appendChild(this.reverse_span);
+
+    const reverse_route = Object.values(this.route.map_handler.routes.value).find(
+        route => route.source === this.route.destination && route.destination === this.route.source && route.route_type.value === this.route.route_type.value);
+
+    if (reverse_route === undefined) {
+      this.add_reversity();
+    } else {
+      reverse_route.route_popup.remove_reversity();
+    }
 
     const cell10 = table_constructor.add_cell(2, ['leftie']);
     const cell11 = table_constructor.add_cell(2, ['leftie']);
@@ -141,6 +156,43 @@ class RoutePopup {
     // TODO add row of edges using this route (their dates, and the visit indices?)
 
     this.popup_div.appendChild(table_constructor.table);
+  }
+
+  add_reversity = () => {
+    this.reverse_span.style = 'margin-left: 2px;'
+    this.reverse_span.innerHTML = '⇄';
+    this.reverse_span.title = 'Add the reverse route, copying all details.';
+    this.reverse_span.classList.add('pointer');
+    this.reverse_span.addEventListener('click', (event) => {
+      this.route.map_handler.add_route(undefined, this.route.destination.id, this.route.source.id, this.route.route_type.value,
+        this.route.distance.value, this.route.duration.value, this.route.estimated_cost.value, this.route.actual_cost.value,
+        this.route.paid.value, this.route.nights.value, this.route.route.value.reverse(), [], (new_route)=> {
+          let notes_correctly_loaded = true;
+          this.route.notes.forEach(note => {
+            console.log(note);
+            const args = {'parameters': {'route_id': new_route.id, 'description': note.description, 'trip_id': this.route.map_handler.trip_id}};
+            console.log('add route note', args)
+            backend_communication.call_google_function('POST',
+            'add_route_note', args, (data) => {
+              if (data['status'] === 'OK') {
+                console.log('adding note', data['node_id'], note.description);
+                new_route.notes.push({id: data['node_id']});
+                new_route.overview.add_note(data['note_id'], note.description);
+              } else {
+                console.log(data);
+                notes_correctly_loaded = false;
+              }
+            });
+          });
+          if (notes_correctly_loaded) {
+            new_route.notes_descriptions_loaded = true;
+          }
+        });
+    });
+  }
+
+  remove_reversity = () => {
+    this.reverse_span.innerHTML = '';
   }
 }
 
@@ -176,7 +228,7 @@ class Route {
     this.route_source_id = `route_source:${this.get_id()}`;
     this.route_layer_id = `route:${this.get_id()}`;
     this.route_arrow_layer_id = `route_arrow:${this.get_id()}`;
-    this.notes = route_notes;
+    this.notes = (route_notes === undefined) ? [] : route_notes;
     this.notes_descriptions_loaded = false;
     this.map_handler = map_handler;
 
@@ -226,7 +278,20 @@ class Route {
   route_type_changed = (new_type, old_type) => {
     // TODO check with existing routes (should be handled in the select in the popup actually already).
     this.property_changed('type', new_type, old_type, () => {
+      const prev_reverse_route = Object.values(this.map_handler.routes.value).find(
+        route => route.source === this.destination && route.destination === this.source && route.route_type.value === old_type);
+      if (prev_reverse_route !== undefined) {
+        prev_reverse_route.route_popup.add_reversity();
+      }
+
       this.set_route(new_type, old_type); // todo handle if no route exists.
+
+      const reverse_route = Object.values(this.map_handler.routes.value).find(
+        route => route.source === this.destination && route.destination === this.source && route.route_type.value === this.route_type.value);
+      if (reverse_route !== undefined) {
+        this.route_popup.remove_reversity();
+        reverse_route.route_popup.remove_reversity();
+      }
 
       // this.map_handler.graph.update_route();
     });
@@ -243,13 +308,6 @@ class Route {
         console.log(data);
       }
     });
-    // backend_communication.fetch('/travel/update_route/', args, (data) => {
-    //   if (data['status'] === 'OK') {
-    //     callback();
-    //   } else {
-    //     console.log(data);
-    //   }
-    // });
     this.map_handler.graph.update_rent_info();
   }
 
@@ -419,6 +477,7 @@ class Route {
       route_notes.forEach((route_note) => {
         this.overview.note_description_spans[route_note['id']].span.innerHTML = route_note['description'];
         this.overview.note_description_spans[route_note['id']].process();
+        this.notes.find(note => note.id === route_note['id']).description = route_note['description'];
       });
       this.notes_descriptions_loaded = true;
     });
