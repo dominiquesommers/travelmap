@@ -31,7 +31,8 @@ class SVGHandler {
 class HTMLCost {
   constructor(css_classes=[], change_callback=(value)=>{}, paid=false, view_only=false) {
     this.context_menu = document.createElement('div');
-    this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
+    this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
+    this.context_menu.classList.add("hidden")
     this.mark_as_paid_button = document.createElement('button');
     this.context_menu.appendChild(this.mark_as_paid_button);
     this.is_paid = paid;
@@ -58,13 +59,8 @@ class HTMLCost {
       event.preventDefault();
       event.stopPropagation();
     });
-    this.span.addEventListener('contextmenu', (event) => {
-      if (view_only) {
-        return;
-      }
-      if (event instanceof PointerEvent) event.preventDefault();
-      this.context_menu.style.display = 'block';
-      this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
+
+    const update_menu_position = () => {
       this.context_menu.style.top = `0px`;
       this.context_menu.style.left = `0px`;
       const viewportWidth = window.innerWidth;
@@ -82,6 +78,18 @@ class HTMLCost {
       }
       this.context_menu.style.top = `${topPosition}px`;
       this.context_menu.style.left = `${leftPosition}px`;
+    }
+
+    this.span.addEventListener('contextmenu', (event) => {
+      if (view_only) {
+        return;
+      }
+      if (event instanceof PointerEvent) event.preventDefault();
+      document.getElementById('floating-divs').appendChild(this.context_menu);
+      this.context_menu.classList.remove('hidden');
+      this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
+      // on_open();
+      update_menu_position();
     });
 
     const set_properties = () => {
@@ -109,17 +117,26 @@ class HTMLCost {
       this.is_paid = !this.is_paid;
       change_callback(this.is_paid, 'paid');
       set_properties();
-      this.context_menu.style.display = 'none';
+      if (document.getElementById('floating-divs').contains(this.context_menu)) {
+        document.getElementById('floating-divs').removeChild(this.context_menu);
+      }
+      this.context_menu.classList.add('hidden');
     });
 
     document.addEventListener('click', (event) => {
-      if (!this.context_menu.contains(event.target) && !this.span.contains(event.target)) {
-        this.context_menu.style.display = 'none';
+      if (document.getElementById('floating-divs').contains(this.context_menu) &&
+          !this.context_menu.contains(event.target) && !this.span.contains(event.target)) {
+        document.getElementById('floating-divs').removeChild(this.context_menu);
+        this.context_menu.classList.add('hidden');
+        // on_close();
       }
     });
     document.addEventListener('contextmenu', (event) => {
-      if (!this.context_menu.contains(event.target) && !this.span.contains(event.target)) {
-        this.context_menu.style.display = 'none';
+      if (document.getElementById('floating-divs').contains(this.context_menu) &&
+          !this.context_menu.contains(event.target) && !this.span.contains(event.target)) {
+        document.getElementById('floating-divs').removeChild(this.context_menu);
+        this.context_menu.classList.add('hidden');
+        // on_close();
       }
     });
   }

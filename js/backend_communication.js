@@ -39,11 +39,11 @@ class Communication {
         throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
       }
       callback_data = await response.json();
-      callback_data['status'] = 'OK';
+      // callback_data['status'] = 'OK';
       console.log('GCF Response Data:', callback_data);
     } catch (error) {
       console.error('Error calling Google Cloud Function:', error);
-      callback_data['status'] = 'NOT OK';
+      // callback_data['status'] = 'NOT OK';
       callback_data['error'] = error;
     } finally {
       console.log(`--- ${http_method} Call to GCF Finished ---`);
