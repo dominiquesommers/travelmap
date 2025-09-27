@@ -130,12 +130,37 @@ class RoutePopup {
       }
     });
 
-    const divider4 = document.createElement('span');
-    divider4.innerHTML = ' '
-    cell5.appendChild(divider4);
 
     this.reverse_span = document.createElement('span');
     cell5.appendChild(this.reverse_span);
+    this.reverse_span.style = 'margin-left: 2px;'
+    this.reverse_span.innerHTML = '⇄';
+    this.reverse_span.title = 'Add the reverse route, copying all details.';
+    this.reverse_span.classList.add('pointer', 'hidden');
+    this.reverse_span.addEventListener('click', (event) => {
+      this.route.map_handler.add_route(undefined, this.route.destination.id, this.route.source.id, this.route.route_type.value,
+        this.route.distance.value, this.route.duration.value, this.route.estimated_cost.value, this.route.actual_cost.value,
+        this.route.paid.value, this.route.nights.value, this.route.route.value.slice().reverse(), [], (new_route)=> {
+          let notes_correctly_loaded = true;
+          this.route.notes.forEach(note => {
+            const args = {'parameters': {'route_id': new_route.id, 'description': note.description, 'trip_id': this.route.map_handler.trip_id}};
+            backend_communication.call_google_function('POST',
+            'add_route_note', args, (data) => {
+              if (data['status'] === 'OK') {
+                new_route.notes.push({id: data['note_id']});
+                new_route.overview.add_note(data['note_id'], note.description);
+              } else {
+                console.log(data);
+                notes_correctly_loaded = false;
+              }
+            });
+          });
+          if (notes_correctly_loaded) {
+            new_route.notes_descriptions_loaded = true;
+          }
+        });
+    });
+
 
     const reverse_route = Object.values(this.route.map_handler.routes.value).find(
         route => route.source === this.route.destination && route.destination === this.route.source && route.route_type.value === this.route.route_type.value);
@@ -159,40 +184,11 @@ class RoutePopup {
   }
 
   add_reversity = () => {
-    this.reverse_span.style = 'margin-left: 2px;'
-    this.reverse_span.innerHTML = '⇄';
-    this.reverse_span.title = 'Add the reverse route, copying all details.';
-    this.reverse_span.classList.add('pointer');
-    this.reverse_span.addEventListener('click', (event) => {
-      this.route.map_handler.add_route(undefined, this.route.destination.id, this.route.source.id, this.route.route_type.value,
-        this.route.distance.value, this.route.duration.value, this.route.estimated_cost.value, this.route.actual_cost.value,
-        this.route.paid.value, this.route.nights.value, this.route.route.value.reverse(), [], (new_route)=> {
-          let notes_correctly_loaded = true;
-          this.route.notes.forEach(note => {
-            console.log(note);
-            const args = {'parameters': {'route_id': new_route.id, 'description': note.description, 'trip_id': this.route.map_handler.trip_id}};
-            console.log('add route note', args)
-            backend_communication.call_google_function('POST',
-            'add_route_note', args, (data) => {
-              if (data['status'] === 'OK') {
-                console.log('adding note', data['node_id'], note.description);
-                new_route.notes.push({id: data['node_id']});
-                new_route.overview.add_note(data['note_id'], note.description);
-              } else {
-                console.log(data);
-                notes_correctly_loaded = false;
-              }
-            });
-          });
-          if (notes_correctly_loaded) {
-            new_route.notes_descriptions_loaded = true;
-          }
-        });
-    });
+    this.reverse_span.classList.remove('hidden');
   }
 
   remove_reversity = () => {
-    this.reverse_span.innerHTML = '';
+    this.reverse_span.classList.add('hidden');
   }
 }
 
@@ -291,6 +287,8 @@ class Route {
       if (reverse_route !== undefined) {
         this.route_popup.remove_reversity();
         reverse_route.route_popup.remove_reversity();
+      } else {
+        this.route_popup.add_reversity();
       }
 
       // this.map_handler.graph.update_route();
@@ -466,7 +464,6 @@ class Route {
     if (this.notes_descriptions_loaded) {
       return;
     }
-    console.log('get_route_note_descriptions');
     Object.values(this.overview.note_description_spans).forEach((html_span) => {
       html_span.span.innerHTML = 'Loading...';
       html_span.process();
