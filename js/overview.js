@@ -88,6 +88,13 @@ class Overview {
     const divider4 = document.createElement('span');
     divider4.innerHTML = '<hr>';
     this.html.appendChild(divider4);
+
+    this.warnings_div = document.createElement('div');
+    this.html.appendChild(this.warnings_div);
+
+    const divider5 = document.createElement('span');
+    divider5.innerHTML = '<hr>';
+    this.html.appendChild(divider5);
   }
 
   set_plan_note = () => {
@@ -260,6 +267,7 @@ class Overview {
     this.end_date.innerHTML = `${current_visit.exit_date.value.toLocaleDateString('en-US')} (${nr_months} months).` //, ${total_days} days).`;
     this.create_seasonality_table(country_scores, full_score);
     this.create_costs_table();
+    this.create_warnings();
   }
 
   create_costs_table = () => {
@@ -596,5 +604,91 @@ class Overview {
     }
 
     return cells;
+  }
+
+  create_warnings = () => {
+    const warnings_title = document.createElement('h3');
+    this.warnings_div.innerHTML = '';
+    this.warnings_div.appendChild(warnings_title);
+    const title_text = document.createElement('span');
+    warnings_title.appendChild(title_text);
+
+    const warnings_div = document.createElement('div');
+    this.warnings_div.appendChild(warnings_div);
+
+    add_collapsible(title_text, warnings_div, '80vh');
+    warnings_div.style.maxHeight = '0px';
+    warnings_div.innerHTML = '';
+
+    const ends_at_start = this.maphandler.graph.sorted_covered_visits[this.maphandler.graph.sorted_covered_visits.length - 1].place.name === this.maphandler.graph.sorted_covered_visits[0].place.name;
+    const warnings = {
+      general: (ends_at_start) ? [] : ['Not a loop (does not end at start)'],
+      costs: {accommodation: [], food: [], miscellaneous: [], route: []},
+      rent_untils: [],
+      rules: []
+    };
+
+    // start visit != end visit (check)
+    // 0 costs in covered places and routes (check)
+    // Not correctly connected rent_until visits (check)
+    // Date rules in place notes, e.g., visit should include a Saturday
+    // Date rules in route notes, e.g., traverse should be on a Saturday
+    // Date rules in country notes, e.g., country consecutive visits should be <= 30 days
+
+    const covered_places = new Set();
+    const country_visits = {}
+    let current_country = this.maphandler.graph.sorted_covered_visits[0].place.country.name;
+    country_visits[current_country] = [1];
+    let rent_until_edge = undefined;
+    this.maphandler.graph.sorted_covered_visits.forEach(visit => {
+      if (visit === rent_until_edge?.rent_until) {
+        rent_until_edge = undefined;
+      }
+
+      const edge = visit.next_edge.value;
+      if (edge?.rent_until !== undefined) {
+        rent_until_edge = edge;
+      }
+
+      if (edge?.route.route_type.value === 'driving' && rent_until_edge === undefined) {
+        warnings.rent_untils.push(edge.route.get_name());
+      }
+
+      if (!covered_places.has(visit.place) && visit.nights.value > 0) {
+        covered_places.add(visit.place);
+        ['food', 'miscellaneous'].forEach(category => {
+          if (visit.place.estimated_costs[category] === 0) {
+            warnings.costs[category].push(visit.place.get_name());
+          }
+        });
+        if (visit.place.estimated_costs['accommodation'] === 0 && (rent_until_edge === undefined || !rent_until_edge.includes_accommodation)) {
+          warnings.costs['accommodation'].push(visit.place.get_name());
+        }
+      }
+
+      if (edge?.route.estimated_cost.value === 0) {
+        warnings.costs['route'].push(edge.route.get_name());
+      }
+
+      // TODO check rules: for place, route, and country.
+      if (visit.place.country.name !== current_country) {
+        current_country = visit.place.country.name;
+        // Check if country has a rule in the notes.
+        if (!(current_country in country_visits)) {
+          country_visits[current_country] = [];
+        }
+        country_visits[current_country].push(1);
+      }
+      country_visits[current_country][country_visits[current_country].length - 1] += visit.nights.value;
+    });
+
+    title_text.innerHTML = `Warnings (${warnings.general.length + warnings.rent_untils.length + warnings.rules.length + warnings.costs.accommodation.length + 
+    warnings.costs.food.length + warnings.costs.miscellaneous.length + warnings.costs.route.length})`;
+
+    const pre = document.createElement('pre');
+    warnings_div.appendChild(pre);
+    const warnings_code = document.createElement('code');
+    pre.appendChild(warnings_code);
+    warnings_code.textContent = JSON.stringify(warnings, null, 2);
   }
 }

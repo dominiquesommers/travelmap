@@ -381,7 +381,11 @@ class Route {
   }
 
   get_id = () => {
-    return `${this.source.get_id()}-${this.destination.get_id()}:${this.route_type.value}`
+    return `${this.source.get_id()}-${this.destination.get_id()}:${this.route_type.value}`;
+  }
+
+  get_name = () => {
+    return `${this.source.get_name()} -(${transport_icons[this.route_type.value]})-> ${this.destination.get_name()}`;
   }
 
   get_parameters = () => {

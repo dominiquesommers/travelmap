@@ -58,6 +58,10 @@ class Place {
     return `${this.name},${this.country.name}`
   }
 
+  get_name = () => {
+    return `${this.name} ${country_flags[this.country.name]}`
+  }
+
   add_visit = (visit_id, nights, included, callback=(new_visit)=>{}) => {
     if (visit_id === undefined) {
       const args = { 'parameters': {'place': this.id, 'nights': nights, 'included': included, 'plan_id': this.map_handler.plan_id } };
