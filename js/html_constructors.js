@@ -341,6 +341,8 @@ class HTMLText {
       this.double_click(event);
     });
 
+    addDoubleTapListener(this.span, (event) => this.double_click(event));
+
     this.span.addEventListener('blur', (event) => {
       this.span.contentEditable = false;
       this.span.style.cursor = 'pointer';
