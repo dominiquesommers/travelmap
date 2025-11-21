@@ -189,6 +189,8 @@ class HTMLNumber {
       this.double_click(event);
     });
 
+    addDoubleTapListener(this.span, (event) => this.double_click(event));
+
     this.add_blur();
 
     ['copy', 'cut', 'paste'].forEach((event) => {
@@ -817,5 +819,69 @@ add_collapsible = (from, to, max_height, ease_duration=0.5) => {
     } else {
       to.style.maxHeight = max_height;
     }
+  });
+}
+
+addDoubleTapListener = (element, callback, delay = 300, maxDistance = 15) => {
+  let lastTapTime = 0;
+  let lastTapX = 0;
+  let lastTapY = 0;
+  let tapTimer = null;
+
+  // 1. Unified Pointer Event Handler
+  element.addEventListener('touchend', (event) => {
+    // Prevent the default browser actions (like zoom/scroll) on the element
+    event.preventDefault();
+
+    // Ensure we are working with the first touch point that ended
+    const touch = event.changedTouches[0];
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTapTime;
+
+    const currentX = touch.screenX;
+    const currentY = touch.screenY;
+
+    // Calculate the distance moved since the last tap
+    const distanceX = Math.abs(currentX - lastTapX);
+    const distanceY = Math.abs(currentY - lastTapY);
+    const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+    // 2. Double Tap Check
+    if (tapLength > 0 && tapLength < delay && distance < maxDistance) {
+      // **Double Tap Detected!**
+
+      // Stop the single-tap timer and execute the callback
+      clearTimeout(tapTimer);
+      tapTimer = null;
+      lastTapTime = 0; // Reset last tap time
+
+      // Call the user's function
+      callback(event);
+
+    } else {
+      // 3. First Tap or Single Tap Timer Logic
+
+      // Clear any existing timer to start a fresh one
+      if (tapTimer) {
+        clearTimeout(tapTimer);
+      }
+
+      // Set a timer for the potential single tap
+      tapTimer = setTimeout(() => {
+        // If this timer expires, reset state for the next potential tap sequence
+        lastTapTime = 0;
+        tapTimer = null;
+      }, delay);
+
+      // Record the details of the current tap
+      lastTapTime = currentTime;
+      lastTapX = currentX;
+      lastTapY = currentY;
+    }
+  });
+
+  // Optional: Keep the native dblclick listener for desktop/mouse users
+  element.addEventListener('dblclick', (event) => {
+      callback(event);
   });
 }
