@@ -114,7 +114,7 @@ class RoutePopup {
     cell5.appendChild(this.nights);
     this.nights.innerHTML = (this.route.nights.value !== undefined) ? this.route.nights.value : 0; // TODO default?
     const divider3 = document.createElement('span');
-    divider3.innerHTML = ' nights.'
+    divider3.innerHTML = '🌙 '; //' nights.'
     cell5.appendChild(divider3);
 
     const delete_span = document.createElement('sub');
@@ -367,17 +367,14 @@ class Route {
       source_data.features.push({ type: 'Feature', id: this.id, properties: {}, geometry: {'coordinates': [], 'type': 'MultiLineString' } });
       source.setData(source_data);
     });
-
-
-    // if (!this.optimize) {
-    //   this.map_handler.map.addSource(this.route_source_id, { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: {'coordinates': source_route, 'type': 'LineString' } }});
-    //   this.map_handler.add_layer(this.get_line_parameters());
-    //   this.map_handler.add_layer(this.get_arrow_parameters());
-    //   this.map_handler.map.on('click', this.route_arrow_layer_id, this.route_clicked);
-    //   this.map_handler.map.on('mouseenter', this.route_arrow_layer_id, this.route_hover);
-    //   this.map_handler.map.on('mouseleave', this.route_arrow_layer_id, this.route_unhover);
-    // }
     this.set_disabled();
+  }
+
+  remove_from_map = () => {
+    ['disabled', 'enabled'].forEach((color) => {
+      const source = this.map_handler.map.getSource(`routes_${color}_${this.route_type.value}`);
+      source.updateData({ "type": "FeatureCollection", "features": [{ "id": this.id, "type": "Feature", "properties": {}, "geometry": { "type": "MultiLineString", "coordinates": [[]] } }] });
+    });
   }
 
   get_id = () => {

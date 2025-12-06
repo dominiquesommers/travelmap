@@ -116,10 +116,14 @@ class MapHandler {
 
         this.map.on('mouseenter', `routes_${color}_${route_type}_icons`, (event) => {
           this.route_hover_id = event.features[0].id;
-          this.routes.value[event.features[0].id].route_hover(event);
+          if (this.route_hover_id !== undefined) {
+            this.routes.value[event.features[0].id].route_hover(event);
+          }
         });
         this.map.on('mouseleave', `routes_${color}_${route_type}_icons`, (event) => {
-          this.routes.value[this.route_hover_id].route_unhover(event)
+          if (this.route_hover_id !== undefined) {
+            this.routes.value[this.route_hover_id].route_unhover(event)
+          }
         });
       });
     });
@@ -353,9 +357,10 @@ class MapHandler {
     if (reverse_route !== undefined) {
       reverse_route.route_popup.add_reversity();
     }
-    this.map.removeLayer(route.route_layer_id);
-    this.map.removeLayer(route.route_arrow_layer_id);
-    this.map.removeSource(route.route_source_id);
+    route.remove_from_map();
+    // this.map.removeLayer(route.route_layer_id);
+    // this.map.removeLayer(route.route_arrow_layer_id);
+    // this.map.removeSource(route.route_source_id);
     delete this.routes.value[route.id];
     this.routes.value = {...this.routes.value};
     route.source.visits.value.forEach((visit) => {
