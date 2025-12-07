@@ -140,12 +140,13 @@ class VisitPopup {
     }
     this.next_edge_rent.appendChild(rent_until_select);
 
-    const includes_acco_span = document.createElement('span');
-    includes_acco_span.innerHTML = '<br>Includes accomm.:'
     const checkbox = document.createElement('input');
-    if (this.visit.place.map_handler.view_only) {
-      checkbox.disabled = true;
-    }
+    checkbox.id = `accom-checkbox-${this.visit.id}`;
+    const includes_acco_span = document.createElement('label');
+    includes_acco_span.innerHTML = '<br>Includes accomm.:'
+    includes_acco_span.for = checkbox.id;
+    includes_acco_span.style['user-select'] = 'none';
+    includes_acco_span.classList.add('pointer');
     checkbox.type = 'checkbox';
     checkbox.checked = this.visit.next_edge.value.includes_accommodation;
     includes_acco_span.appendChild(checkbox);
@@ -443,7 +444,6 @@ class VisitPopup {
     const current_visit_name_span = document.createElement('span');
     current_visit_cell.appendChild(current_visit_name_span);
     current_visit_name_span.innerHTML = `${this.visit.place.name}<sub>${this.visit.short_id}</sub>`;
-    // this.decrement_nights = document.createElement('span');
     current_visit_cell.appendChild(this.decrement_nights);
     this.decrement_nights.innerHTML = '<sup>-</sup>';
     this.decrement_nights.classList.add('minus');
