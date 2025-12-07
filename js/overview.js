@@ -284,6 +284,7 @@ class Overview {
     costs_div.style.maxHeight = '0px';
 
     const country_costs = {cross_country: {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0, nights: 0}};
+    const country_costs_actual = {cross_country: {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0}};
     let rent_until_edge = undefined;
     let covered_places = new Set();
     let covered_countries = new Set();
@@ -291,6 +292,7 @@ class Overview {
     this.maphandler.graph.sorted_covered_visits.forEach(visit => {
       if (!(visit.place.country.name in country_costs)) {
         country_costs[visit.place.country.name] = {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0, nights: 0};
+        country_costs_actual[visit.place.country.name] = {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0};
       }
 
       country_costs[visit.place.country.name].nights += visit.nights.value;
@@ -301,28 +303,43 @@ class Overview {
       if (rent_until_edge !== undefined) {
         if (rent_until_edge.includes_accommodation) {
           country_costs[visit.place.country.name].transport += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
+          country_costs_actual[visit.place.country.name].transport += 0.5 * visit.nights.value * ((rent_until_edge.route.actual_cost?.value > 0) ? rent_until_edge.route.actual_cost.value : rent_until_edge.route.estimated_cost.value);
           country_costs[visit.place.country.name].accommodation += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
+          country_costs_actual[visit.place.country.name].accommodation += 0.5 * visit.nights.value * ((rent_until_edge.route.actual_cost?.value > 0) ? rent_until_edge.route.actual_cost.value : rent_until_edge.route.estimated_cost.value);
         } else {
           country_costs[visit.place.country.name].transport += rent_until_edge.route.estimated_cost.value * visit.nights.value;
+          country_costs_actual[visit.place.country.name].transport += visit.nights.value * ((rent_until_edge.route.actual_cost?.value > 0) ? rent_until_edge.route.actual_cost.value : rent_until_edge.route.estimated_cost.value);
         }
       }
       if (rent_until_edge === undefined || !rent_until_edge.includes_accommodation) {
+        const est_cost = visit.nights.value * visit.place.estimated_costs.accommodation;
+        const act_cost = ((visit.place.actual_costs?.accommodation > 0) ? (visit.nights.value * visit.place.actual_costs.accommodation) : est_cost)
         country_costs[visit.place.country.name].accommodation += visit.nights.value * visit.place.estimated_costs.accommodation;
+        country_costs_actual[visit.place.country.name].accommodation += visit.nights.value * ((visit.place.actual_costs?.accommodation > 0) ? visit.place.actual_costs.accommodation : visit.place.estimated_costs.accommodation);
+        if (visit.place.name === 'Melbourne') {
+          console.log(visit.place.actual_costs);
+          console.log(est_cost)
+          console.log(act_cost)
+        }
       }
 
       country_costs[visit.place.country.name].food += visit.nights.value * visit.place.estimated_costs.food;
+      country_costs_actual[visit.place.country.name].food += visit.nights.value * ((visit.place.actual_costs?.food > 0) ? visit.place.actual_costs.food : visit.place.estimated_costs.food);
       country_costs[visit.place.country.name].miscellaneous += visit.nights.value * visit.place.estimated_costs.miscellaneous;
+      country_costs_actual[visit.place.country.name].miscellaneous += visit.nights.value * ((visit.place.actual_costs?.miscellaneous > 0) ? visit.place.actual_costs.miscellaneous : visit.place.estimated_costs.miscellaneous);
 
       if (!covered_places.has(visit.place)) {
         covered_places.add(visit.place);
         visit.place.activities.forEach(activity => {
           if (activity.included) {
             country_costs[visit.place.country.name].activities += activity.estimated_cost;
+            country_costs_actual[visit.place.country.name].activities += ((activity.actual_cost > 0) ? activity.actual_cost : activity.estimated_cost);
           }
         });
         visit.place.notes.forEach(note => {
           if (note.included) {
             country_costs[visit.place.country.name].miscellaneous += note.estimated_cost;
+            country_costs_actual[visit.place.country.name].miscellaneous += ((note.actual_cost > 0) ? note.actual_cost : note.estimated_cost);
           }
         });
       }
@@ -332,6 +349,7 @@ class Overview {
         visit.place.country.notes.forEach(note => {
           if (note.included) {
             country_costs[visit.place.country.name].miscellaneous += note.estimated_cost;
+            country_costs_actual[visit.place.country.name].miscellaneous += ((note.actual_cost > 0) ? note.actual_cost : note.estimated_cost);
           }
         });
       }
@@ -345,33 +363,50 @@ class Overview {
         if (edge.destination.place.country.name !== current_country) {
           current_country = edge.destination.place.country.name;
           country_costs.cross_country.transport += edge.route.estimated_cost.value;
+          country_costs_actual.cross_country.transport += ((edge.route.actual_cost?.value > 0) ? edge.route.actual_cost.value : edge.route.estimated_cost.value);
           country_costs.cross_country.nights += edge.route.nights.value;
         } else if (edge.route.nights.value > 0) {
+          const estimated_cost = edge.route.estimated_cost.value;
+          const actual_cost = ((edge.route.actual_cost?.value > 0) ? edge.route.actual_cost.value : estimated_cost)
           if (edge.route.route_type.value === 'boat') {
-            country_costs[visit.place.country.name].transport += 0.25 * edge.route.estimated_cost.value;
-            country_costs[visit.place.country.name].accommodation += 0.25 * edge.route.estimated_cost.value;
-            country_costs[visit.place.country.name].food += 0.25 * edge.route.estimated_cost.value;
-            country_costs[visit.place.country.name].activities += 0.25 * edge.route.estimated_cost.value;
+            country_costs[visit.place.country.name].transport += 0.25 * estimated_cost;
+            country_costs_actual[visit.place.country.name].transport += 0.25 * actual_cost;
+            country_costs[visit.place.country.name].accommodation += 0.25 * estimated_cost;
+            country_costs_actual[visit.place.country.name].accommodation += 0.25 * actual_cost;
+            country_costs[visit.place.country.name].food += 0.25 * estimated_cost;
+            country_costs_actual[visit.place.country.name].food += 0.25 * actual_cost;
+            country_costs[visit.place.country.name].activities += 0.25 * estimated_cost;
+            country_costs_actual[visit.place.country.name].activities += 0.25 * actual_cost;
           } else {
-            country_costs[visit.place.country.name].transport += 0.4 * edge.route.estimated_cost.value;
-            country_costs[visit.place.country.name].accommodation += 0.4 * edge.route.estimated_cost.value;
-            country_costs[visit.place.country.name].food += 0.2 * edge.route.estimated_cost.value;
+            country_costs[visit.place.country.name].transport += 0.4 * estimated_cost;
+            country_costs_actual[visit.place.country.name].transport += 0.4 * actual_cost;
+            country_costs[visit.place.country.name].accommodation += 0.4 * estimated_cost;
+            country_costs_actual[visit.place.country.name].accommodation += 0.4 * actual_cost;
+            country_costs[visit.place.country.name].food += 0.2 * estimated_cost;
+            country_costs_actual[visit.place.country.name].food += 0.2 * actual_cost;
           }
         } else {
           country_costs[visit.place.country.name].transport += edge.route.estimated_cost.value;
+          country_costs_actual[visit.place.country.name].transport += ((edge.route.actual_cost?.value > 0) ? edge.route.actual_cost.value : edge.route.estimated_cost.value);
         }
       }
     });
-    console.log(country_costs.cross_country)
+
     const cost_cats = ['accommodation', 'transport', 'food', 'activities', 'miscellaneous'];
     const total_cost = Object.fromEntries([...cost_cats, 'nights'].map(
         k => [k, Object.values(country_costs).reduce((n, v) => n + v[k], 0)]));
+    const total_cost_actual = Object.fromEntries(cost_cats.map(
+        k => [k, Object.values(country_costs_actual).reduce((n, v) => n + v[k], 0)]));
 
     console.log(total_cost);
     const total_total_cost = total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities;
+    const total_total_cost_actual = total_cost_actual.accommodation + total_cost_actual.food + total_cost_actual.miscellaneous + total_cost_actual.transport + total_cost_actual.activities;
     console.log('total_total_cost', total_total_cost, Math.round(total_total_cost/100)/10)
+    console.log('total_total_cost_actual', total_total_cost_actual, Math.round(total_total_cost_actual/100)/10)
     const total_avg_cost = (total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities - country_costs.cross_country.transport) / total_cost.nights;
+    const total_avg_cost_actual = (total_cost_actual.accommodation + total_cost_actual.food + total_cost_actual.miscellaneous + total_cost_actual.transport + total_cost_actual.activities - country_costs_actual.cross_country.transport) / total_cost.nights;
     title_text.innerHTML = `Costs (€${Math.round(total_total_cost/100)/10}k, i.e., €${Math.round(total_avg_cost)}/d + €${Math.round(country_costs.cross_country.transport/100)/10}k cross)`;
+    title_text.innerHTML += `<br>Costs (€${Math.round(total_total_cost_actual/100)/10}k, i.e., €${Math.round(total_avg_cost_actual)}/d + €${Math.round(country_costs_actual.cross_country.transport/100)/10}k cross)`;
 
     const chart_div = document.createElement('div');
     costs_div.appendChild(chart_div);
