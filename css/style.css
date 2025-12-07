@@ -13,6 +13,12 @@
 .line-through {
   text-decoration-line: line-through;
 }
+.editable-line-through {
+  text-decoration-line: line-through;
+}
+.editable-line-through:hover {
+  text-decoration-line: underline line-through;
+}
 
 .transport-select {
   border: none;
@@ -221,7 +227,7 @@ abbr[title] {
 .costs-title-row td {
   position: sticky;
   top: 0;
-  width: 33%;
+  width: 25%;
   background-color: #f5f5f5;
   z-index: 1;
   border-bottom: 1px solid black;
@@ -385,6 +391,66 @@ html, body {
   font-weight: bolder;
 }
 
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
 .season .number {
   background: #859cbb !important;
   color: #fff !important;
@@ -403,6 +469,60 @@ html, body {
   flex-direction: column;
   align-items: center;
 }
+
+#url-input-editor {
+  position: absolute;
+  z-index: 1000;
+  padding: 5px 5px;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: white;
+  font-size: 14px;
+}
+
+.no-link-underline {
+  text-decoration: none;
+  user-select: none;
+}
+
+.no-link-underline:hover {
+  opacity: 0.7;
+}
+
+.editable:hover {
+  cursor: pointer;
+  text-decoration-line: underline;
+  text-decoration-color: #9c9c9c;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.right-clickable:hover {
+  opacity: 0.7;
+}
+
+.editable-right-clickable:hover {
+  cursor: pointer;
+  opacity: 0.7;
+  text-decoration-line: underline;
+  text-decoration-color: #9c9c9c;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.editable-right-clickable-line-through:hover {
+  cursor: pointer;
+  opacity: 0.7;
+  text-decoration-line: underline line-through;
+  text-decoration-color: #9c9c9c;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 
 .custom-search {
   height: 36px;
@@ -584,7 +704,7 @@ html, body {
 .destination-marker .detail-box {
   opacity: 0;
   visibility: hidden;
-  pointer-events: none;
+  /*pointer-events: none;*/
   transform: translateY(10%);
   bottom: 1.55rem;
   position: absolute;
@@ -764,7 +884,7 @@ html, body {
   bottom: 100%;
   left: 50%;
   padding-bottom: .25rem;
-  pointer-events: none;
+  /*pointer-events: none;*/
   transform: translate(-50%,20px);
   opacity: 0;
   transition: .2s;
