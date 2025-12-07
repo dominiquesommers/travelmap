@@ -39,22 +39,16 @@ class HTMLCost {
     this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
     this.mark_as_paid_button.classList.add('mark-as-paid');
     this.span = document.createElement('span');
-    this.estimated_cost = new HTMLNumber(undefined,css_classes, (value) => change_callback(value, 'estimated'), view_only);
-    this.estimated_cost_sup = document.createElement('sup');
-    this.estimated_cost_sup.innerHTML = '(est.)';
-    this.estimated_cost_sup.style = 'user-select: none; cursor: text;';
-    this.estimated_cost_sup.classList.add('hidden', 'opacity-50');
-    this.actual_cost = new HTMLNumber(undefined,css_classes, (value) => change_callback(value, 'actual'), view_only);
-    this.actual_cost.span.style = 'margin-left: 2px; cursor: pointer;';
-    this.actual_cost.span.classList.add('hidden');
-    this.actual_cost_sup = document.createElement('sup');
-    this.actual_cost_sup.innerHTML = '✔';
-    this.actual_cost_sup.style = 'user-select: none; cursor: text;';
-    this.actual_cost_sup.classList.add('hidden', 'text-green-600');
+    this.span.classList.add('pointer');
+    this.estimated_cost = new HTMLNumber(undefined, css_classes, (value) => change_callback(value, 'estimated'), view_only);
+    this.estimated_cost.span.style.userSelect = 'none';
+    this.estimated_cost.span.classList.add('editable-right-clickable');
+    this.actual_cost = new HTMLNumber(undefined, css_classes, (value) => change_callback(value, 'actual'), view_only);
+    this.actual_cost.span.style.userSelect = 'none';
+    this.actual_cost.span.style = 'margin-left: 0px; cursor: pointer;';
+    this.actual_cost.span.classList.add('hidden', 'editable-right-clickable');
     this.span.appendChild(this.estimated_cost.span);
-    this.span.appendChild(this.estimated_cost_sup);
     this.span.appendChild(this.actual_cost.span);
-    this.span.appendChild(this.actual_cost_sup);
     this.mark_as_paid_button.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -85,9 +79,9 @@ class HTMLCost {
         return;
       }
       if (event instanceof PointerEvent) event.preventDefault();
+      this._handle_right_click(event);
       document.getElementById('floating-divs').appendChild(this.context_menu);
       this.context_menu.classList.remove('hidden');
-      this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
       // on_open();
       update_menu_position();
     });
@@ -95,18 +89,16 @@ class HTMLCost {
     const set_properties = () => {
       if (this.is_paid) {
         document.getElementById('floating-divs').appendChild(this.context_menu);
-        this.estimated_cost.span.classList.add('line-through', 'opacity-50');
-        this.estimated_cost_sup.classList.remove('hidden');
+        this.estimated_cost.span.classList.remove('editable-right-clickable', 'opacity-50');
+        this.estimated_cost.span.classList.add('line-through', 'editable-right-clickable-line-through', 'opacity-50');
         this.actual_cost.span.classList.remove('hidden');
-        this.actual_cost_sup.classList.remove('hidden');
       } else {
         if (document.getElementById('floating-divs').contains(this.context_menu)) {
           document.getElementById('floating-divs').removeChild(this.context_menu);
         }
-        this.estimated_cost.span.classList.remove('line-through', 'opacity-50');
-        this.estimated_cost_sup.classList.add('hidden');
+        this.estimated_cost.span.classList.remove('line-through', 'editable-right-clickable-line-through', 'opacity-50');
+        this.estimated_cost.span.classList.add('editable-right-clickable');
         this.actual_cost.span.classList.add('hidden');
-        this.actual_cost_sup.classList.add('hidden');
       }
     }
     set_properties();
@@ -140,6 +132,10 @@ class HTMLCost {
       }
     });
   }
+
+  _handle_right_click = (event) => {
+    this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
+  }
 }
 
 class HTMLNumber {
@@ -151,7 +147,11 @@ class HTMLNumber {
     }
     this.span.inputMode = 'numeric';
     this.span.style.userSelect = 'text';
-    this.span.style.cursor = 'pointer';
+    if (view_only) {
+      this.span.style.cursor = 'default';
+    } else {
+      this.span.classList.add('editable');
+    }
     this.span.style.padding = '0px 3px';
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
     this.on_open = on_open;
@@ -291,6 +291,17 @@ class ClickableCell {
     //   }
     //   event.stopPropagation();
     // });
+    document.addEventListener(('ontouchstart' in window) ? 'touchend' : 'click', (event) => {
+      // event.preventDefault();
+      if (!cell.contains(event.target) && !this.context_menu.contains(event.target)) {
+        if (document.getElementById('floating-divs').contains(this.context_menu)) {
+          document.getElementById('floating-divs').removeChild(this.context_menu);
+          this.context_menu.classList.add('hidden');
+          on_close();
+        }
+      }
+      event.stopPropagation();
+    });
   }
 }
 
@@ -302,8 +313,10 @@ class HTMLText {
     this.span.contentEditable = false;
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
     this.span.style = 'width: 100%; white-space: initial; word-wrap: break-word; padding: 0px 2px 0px 0px;' // -webkit-user-select: none;'
-    if (!view_only) {
-      this.span.classList.add('pointer');
+    if (view_only) {
+      this.span.style.cursor = 'default';
+    } else {
+      this.span.classList.add('editable');
     }
     this.change_callback = change_callback;
 
@@ -411,7 +424,16 @@ class HTMLSelectableText extends HTMLText {
     this.context_menu = document.createElement('div');
     // this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
     this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none;';
-    this.span.style['user-select'] = 'none';
+    this.span.style.userSelect = 'none';
+
+    if (view_only || disable_text_edit) {
+      this.span.style.cursor = 'default';
+    } else if (!view_only && disable_text_edit) {
+      this.span.classList.add('right-clickable');
+    } else {
+      this.span.classList.add('editable-right-clickable');
+    }
+
     this.context_menu.classList.add("hidden", "bg-grey", "border", "border-gray-200", "rounded-lg", "shadow-xl");
     this.options = {};
     this.list = document.createElement('lu');
