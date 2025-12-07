@@ -164,6 +164,10 @@ class Visit {
     this.popup = new VisitPopup(this);
   }
 
+  is_visited = () => {
+    return (this.entry_date.value !== undefined) && (this.exit_date.value !== undefined);
+  }
+
   get_id = () => {
     return `${this.place.get_id()}:${this.id}`;
   }
