@@ -39,11 +39,9 @@ class Communication {
         throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
       }
       callback_data = await response.json();
-      // callback_data['status'] = 'OK';
       console.log('GCF Response Data:', callback_data);
     } catch (error) {
       console.error('Error calling Google Cloud Function:', error);
-      // callback_data['status'] = 'NOT OK';
       callback_data['error'] = error;
     } finally {
       console.log(`--- ${http_method} Call to GCF Finished ---`);
@@ -51,13 +49,12 @@ class Communication {
     }
   }
 
-  getCookie = (name) => { //get the csrf token.
+  getCookie = (name) => {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
         if (cookie.substring(0, name.length + 1) === (name + '=')) {
           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
           break;
@@ -80,11 +77,6 @@ class Communication {
     })
     .then((response) => response.json())
     .then(callback
-        // (data) => {
-        // console.log('Response from server:', data);
-        // var coords = data.message.geometry.coordinates;
-        // console.log(coords);
-      // }
     );
   };
 }
