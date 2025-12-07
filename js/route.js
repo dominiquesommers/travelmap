@@ -29,8 +29,6 @@ class RoutePopup {
     this.per_day.innerHTML = (this.route.route_type.value === 'driving') ? '/d' : '';
   }
 
-
-
   create_elements = () => {
     this.source = document.createElement('span');
     this.source.classList.add('pointer');
@@ -43,9 +41,6 @@ class RoutePopup {
     this.destination.addEventListener('click', () => {
       this.route.map_handler.map.flyTo({center: [this.route.destination.coordinates.lat, this.route.destination.coordinates.lng]});
       this.route.popup.remove();
-      // this.route.destination.marker.set_popup(undefined, this.route.destination.visits.value[0]);
-      // this.route.destination.marker.popup.addTo(this.route.map_handler.map);
-
     });
 
     this.route_type = new HTMLSelect(['flying', 'train', 'bus', 'driving', 'boat', undefined].map(t => [t, transport_icons[t]]),
@@ -69,10 +64,6 @@ class RoutePopup {
   duration_changed = () => {
     this.route.duration.value = Number(this.duration.innerHTML);
   }
-
-  // cost_changed = () => {
-  //   this.route.estimated_cost.value = Number(this.cost.innerHTML);
-  // }
 
   create_popup = () => {
     this.create_elements();
@@ -160,7 +151,6 @@ class RoutePopup {
           }
         });
     });
-
 
     const reverse_route = Object.values(this.route.map_handler.routes.value).find(
         route => route.source === this.route.destination && route.destination === this.route.source && route.route_type.value === this.route.route_type.value);
