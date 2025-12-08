@@ -79,7 +79,7 @@ class RoutePopup {
     cell1.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 341.333 341.333" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M170.667 0C76.41 0 0 76.41 0 170.667s76.41 170.667 170.667 170.667 170.667-76.41 170.667-170.667S264.923 0 170.667 0zm0 298.667c-70.692 0-128-57.308-128-128s57.308-128 128-128 128 57.308 128 128-57.308 128-128 128z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     const cell2 = table_constructor.add_cell(0, ['adjacent-visit', 'previous']);
     cell2.appendChild(this.source);
-    this.source.innerHTML = this.route.source.get_id();
+    this.source.innerHTML = this.route.source.get_name();
 
     const cell3 = table_constructor.add_cell(1, ['transport']);
     cell3.appendChild(this.route_type);
@@ -105,7 +105,7 @@ class RoutePopup {
     cell5.appendChild(this.nights);
     this.nights.innerHTML = (this.route.nights.value !== undefined) ? this.route.nights.value : 0; // TODO default?
     const divider3 = document.createElement('span');
-    divider3.innerHTML = '🌙 '; //' nights.'
+    divider3.innerHTML = '<sup>🌙</sup> '; //' nights.'
     cell5.appendChild(divider3);
 
     const delete_span = document.createElement('sub');
@@ -166,7 +166,7 @@ class RoutePopup {
     cell11.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" x="0" y="0" viewBox="0 0 341.333 341.333" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M170.667 0C76.41 0 0 76.41 0 170.667s76.41 170.667 170.667 170.667 170.667-76.41 170.667-170.667S264.923 0 170.667 0zm0 298.667c-70.692 0-128-57.308-128-128s57.308-128 128-128 128 57.308 128 128-57.308 128-128 128z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
     const cell12 = table_constructor.add_cell(2, ['adjacent-visit', 'next']);
     cell12.appendChild(this.destination);
-    this.destination.innerHTML = this.route.destination.get_id();
+    this.destination.innerHTML = this.route.destination.get_name();
 
     // TODO add row of edges using this route (their dates, and the visit indices?)
 

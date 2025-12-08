@@ -47,8 +47,6 @@ class Graph {
     if (source_place === undefined || source_place.visits.value.length ===  0 || !source_place.visits.value[0].included.value) { return; }
     const source_visit = source_place.visits.value[0];
 
-    const t1 = performance.now();
-    const previous_sorted_visits = this.sorted_covered_visits;
     this.sorted_covered_visits = [];
 
     Object.values(this.map_handler.places.value).forEach((place) => {
