@@ -40,8 +40,8 @@ class Graph {
     if (this.initializing_data) {
       return;
     }
-    Object.values(this.map_handler.countries).forEach(country => country.pause_callbacks());
-    Object.values(this.map_handler.routes.value).forEach(route => route.pause_callbacks());
+    // Object.values(this.map_handler.countries).forEach(country => country.pause_callbacks());
+    // Object.values(this.map_handler.routes.value).forEach(route => route.pause_callbacks());
 
     const source_place = Object.values(this.map_handler.places.value).find((p) => p.name === 'Eindhoven');
     if (source_place === undefined || source_place.visits.value.length ===  0 || !source_place.visits.value[0].included.value) { return; }
@@ -51,7 +51,7 @@ class Graph {
 
     Object.values(this.map_handler.places.value).forEach((place) => {
       place.visits.value.forEach((visit) => {
-        visit.pause_callbacks();
+        // visit.pause_callbacks();
         ['covered', 'uncovered', 'excluded'].forEach(cl => visit.place.marker.visit_cells[visit.place.visits.value.indexOf(visit)].classList.remove(cl));
         visit.previous_edge.value = undefined;
         visit.next_edge.value = undefined;
@@ -120,11 +120,11 @@ class Graph {
       place.marker.set_add_visit_background();
     });
 
-    Object.values(this.map_handler.countries).forEach(country => country.unpause_callbacks(true));
-    Object.values(this.map_handler.routes.value).forEach(route => route.unpause_callbacks(true));
-    Object.values(this.map_handler.places.value).forEach((place) => {
-      place.visits.value.forEach((visit) => visit.unpause_callbacks(true));
-    });
+    // Object.values(this.map_handler.countries).forEach(country => country.unpause_callbacks(true));
+    // Object.values(this.map_handler.routes.value).forEach(route => route.unpause_callbacks(true));
+    // Object.values(this.map_handler.places.value).forEach((place) => {
+    //   place.visits.value.forEach((visit) => visit.unpause_callbacks(true));
+    // });
   }
 
   update_dates = () => {
