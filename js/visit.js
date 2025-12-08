@@ -12,6 +12,18 @@ class Country {
     this.overview = new CountryOverview(this);
   }
 
+  pause_callbacks = () => {
+    Object.values(this).forEach((prop) => {
+      if (prop instanceof Observable) prop.pause();
+    });
+  }
+
+  unpause_callbacks = (perform_callback) => {
+    Object.values(this).forEach((prop) => {
+      if (prop instanceof Observable) prop.unpause(perform_callback);
+    });
+  }
+
   get_note_descriptions = () => {
     console.log('get_country_note_descriptions');
     if (this.notes_descriptions_loaded) {
@@ -148,7 +160,7 @@ class Visit {
     this.short_id = short_id;
     this.place = place;
     this.nights = new Observable(nights, this.set_nights);
-    this.nights.subscribe(this.nights_updated)
+    this.nights.subscribe(this.nights_updated);
     this._outgoing_edges = new Observable([]);
     this.included = new Observable(included, this.set_included);
     this.included.subscribe(this.included_updated)
@@ -162,6 +174,18 @@ class Visit {
     this.included_in_rent = false;
     this.marker = undefined;
     this.popup = new VisitPopup(this);
+  }
+
+  pause_callbacks = () => {
+    Object.values(this).forEach((prop) => {
+      if (prop instanceof Observable) prop.pause();
+    });
+  }
+
+  unpause_callbacks = (perform_callback) => {
+    Object.values(this).forEach((prop) => {
+      if (prop instanceof Observable) prop.unpause(perform_callback);
+    });
   }
 
   is_visited = () => {

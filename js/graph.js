@@ -6,7 +6,6 @@ class Graph {
     this.map_handler.places.subscribe(this.places_changed);
     this.initializing_data = false;
     this.sorted_covered_visits = [];
-    // this._visits = {};
   }
 
   places_changed = (new_places, old_places) => {
@@ -41,9 +40,9 @@ class Graph {
     if (this.initializing_data) {
       return;
     }
+    Object.values(this.map_handler.countries).forEach(country => country.pause_callbacks());
+    Object.values(this.map_handler.routes.value).forEach(route => route.pause_callbacks());
 
-    const t0 = performance.now();
-    console.log('updating route.')
     const source_place = Object.values(this.map_handler.places.value).find((p) => p.name === 'Eindhoven');
     if (source_place === undefined || source_place.visits.value.length ===  0 || !source_place.visits.value[0].included.value) { return; }
     const source_visit = source_place.visits.value[0];
@@ -52,24 +51,9 @@ class Graph {
     const previous_sorted_visits = this.sorted_covered_visits;
     this.sorted_covered_visits = [];
 
-    // new Set(previous_sorted_visits.map(visit => visit.place.country)).forEach(country => {
-    //   country.visits.value = [];
-    // });
-
-    // previous_sorted_visits.forEach(visit => {
-    //   ['covered', 'uncovered', 'excluded'].forEach(cl => visit.place.marker.visit_cells[visit.place.visits.value.indexOf(visit)].classList.remove(cl));
-    //   visit.previous_edge.value = undefined;
-    //   visit.next_edge.value = undefined;
-    //   visit.entry_date.value = undefined;
-    //   visit.exit_date.value = undefined;
-    //   visit._outgoing_edges.value.forEach((edge) => {
-    //     edge.route.set_disabled();
-    //     edge.route.traverses.value = [];
-    //   });
-    // });
-
     Object.values(this.map_handler.places.value).forEach((place) => {
       place.visits.value.forEach((visit) => {
+        visit.pause_callbacks();
         ['covered', 'uncovered', 'excluded'].forEach(cl => visit.place.marker.visit_cells[visit.place.visits.value.indexOf(visit)].classList.remove(cl));
         visit.previous_edge.value = undefined;
         visit.next_edge.value = undefined;
@@ -80,16 +64,11 @@ class Graph {
       });
     });
 
-
-    // route.traverses.value = [...route.traverses.value, date];
-
     source_visit.previous_edge.value = undefined;
-    var current_visit = source_visit;
+    let current_visit = source_visit;
     const covered_visits = new Set([current_visit]);
     this.sorted_covered_visits.push(current_visit);
     const covered_routes = new Set();
-    const t2 = performance.now();
-    console.log(`resetting route. ${t2 - t1} (${previous_sorted_visits.length} visits)`)
     while (true) {
       current_visit.place.marker.visit_cells[current_visit.place.visits.value.indexOf(current_visit)].classList.add('covered');
       current_visit.next_edge.value = current_visit._outgoing_edges.value.find((edge) => (edge.destination.included.value && !covered_visits.has(edge.destination)));
@@ -135,17 +114,19 @@ class Graph {
       });
     });
 
-    const t4 = performance.now();
     this.update_dates();
-    const t5 = performance.now();
-    console.log(`update dates. ${t5 - t4}`)
     this.update_rent_info();
-    // this.update_cost_info();
-    this.map_handler.overview.update_route(this.sorted_covered_visits[0]);
+    this.map_handler.overview.update_route(this.sorted_covered_visits[0]); // TODO this may be slow.
     Object.values(this.map_handler.places.value).forEach(place => {
       place.marker.set_border_color();
       place.marker.set_add_visit_background();
-    })
+    });
+
+    Object.values(this.map_handler.countries).forEach(country => country.unpause_callbacks(true));
+    Object.values(this.map_handler.routes.value).forEach(route => route.unpause_callbacks(true));
+    Object.values(this.map_handler.places.value).forEach((place) => {
+      place.visits.value.forEach((visit) => visit.unpause_callbacks(true));
+    });
   }
 
   update_dates = () => {
@@ -160,19 +141,13 @@ class Graph {
     let current_country = undefined;
     let current_date = new Date(`${this.map_handler.overview.start_date.value}T00:00:00.000+00:00`);
     current_date = (isNaN(current_date)) ? new Date(this.map_handler.overview.start_date.value) : current_date;
-    console.log(current_date);
     let previous_visit = undefined;
-    const countries = new Set();
     this.sorted_covered_visits.forEach(visit => {
       const route_nights = (previous_visit === undefined) ? 0 : previous_visit?.next_edge.value.route.nights.value;
       current_date.setDate(current_date.getDate() + route_nights);
       visit.entry_date.value = new Date(Date.UTC(current_date.getUTCFullYear(), current_date.getUTCMonth(), current_date.getUTCDate()));
       current_date.setDate(current_date.getDate() + visit.nights.value);
       visit.exit_date.value = new Date(Date.UTC(current_date.getUTCFullYear(), current_date.getUTCMonth(), current_date.getUTCDate()));
-      // if (!countries.has(visit.place.country)) {
-      //   visit.place.country.visits.value = [];
-      //   countries.add(visit.place.country);
-      // }
       if (visit.place.country !== current_country) {
         current_country = visit.place.country;
         visit.place.country.visits.value = [...visit.place.country.visits.value, [visit.entry_date.value, visit.exit_date.value]];
@@ -201,97 +176,4 @@ class Graph {
       }
     });
   }
-
-  // update_cost_info = () => {
-  //   return;
-  //   let total_cost = {accommodation: 0, food: 0, miscellaneous: 0, transport: 0, activities: 0};
-  //   let rent_until_edge = undefined;
-  //   let covered_places = new Set();
-  //   let covered_countries = new Set();
-  //   let routes_to_do = [];
-  //   this.sorted_covered_visits.forEach(visit => {
-  //     // console.log();
-  //     // console.log(visit.place.name, visit.nights.value);
-  //     if (visit === rent_until_edge?.rent_until) {
-  //       rent_until_edge = undefined;
-  //     }
-  //
-  //     // console.log(rent_until_edge)
-  //
-  //     if (rent_until_edge !== undefined) {
-  //       if (rent_until_edge.includes_accommodation) {
-  //         // console.log('jjaa', rent_until_edge.route.estimated_cost.value * visit.nights.value)
-  //         total_cost.transport += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
-  //         total_cost.accommodation += 0.5 * rent_until_edge.route.estimated_cost.value * visit.nights.value;
-  //       } else {
-  //         total_cost.transport += rent_until_edge.route.estimated_cost.value * visit.nights.value;
-  //       }
-  //     }
-  //
-  //     // visit_cost: nights*acco (unless visit.included_in_rent), nights*food, nights*misc]
-  //     if (rent_until_edge === undefined || !rent_until_edge.includes_accommodation) {
-  //       // console.log(rent_until_edge?.includes_accommodation, visit.place.costs.accommodation)
-  //       total_cost.accommodation += visit.nights.value * visit.place.costs.accommodation;
-  //     }
-  //
-  //     total_cost.food += visit.nights.value * visit.place.costs.food;
-  //     total_cost.miscellaneous += visit.nights.value * visit.place.costs.miscellaneous;
-  //
-  //     if (!covered_places.has(visit.place)) {
-  //       visit.place.activities.forEach(activity => {
-  //         if (activity.included) {
-  //           total_cost.activities += activity.cost;
-  //         }
-  //       });
-  //       visit.place.notes.forEach(note => {
-  //         if (note.included) {
-  //           total_cost.miscellaneous += note.cost;
-  //         }
-  //       });
-  //     }
-  //
-  //     if (!covered_countries.has(visit.place.country)) {
-  //       covered_countries.add(visit.place.country);
-  //       visit.place.country.notes.forEach(note => {
-  //         if (note.included) {
-  //           total_cost.miscellaneous += note.cost;
-  //         }
-  //       });
-  //     }
-  //
-  //     const edge = visit.next_edge.value;
-  //     if (edge?.rent_until !== undefined) {
-  //       rent_until_edge = edge;
-  //       // rent_includes_accommodation = edge.includes_accommodation;
-  //     }
-  //
-  //     if (edge !== undefined && rent_until_edge === undefined) {
-  //       // console.log('jojojo', edge.route.estimated_cost.value)
-  //       if (edge.route.nights.value > 0) {
-  //         // console.log('j00ojojo', edge.route.estimated_cost.value)
-  //         if (edge.route.route_type.value === 'boat') {
-  //           total_cost.transport += 0.25 * edge.route.estimated_cost.value;
-  //           total_cost.accommodation += 0.25 * edge.route.estimated_cost.value;
-  //           total_cost.food += 0.25 * edge.route.estimated_cost.value;
-  //           total_cost.activities += 0.25 * edge.route.estimated_cost.value;
-  //         } else {
-  //           total_cost.transport += 0.4 * edge.route.estimated_cost.value;
-  //           total_cost.accommodation += 0.4 * edge.route.estimated_cost.value;
-  //           total_cost.food += 0.2 * edge.route.estimated_cost.value;
-  //         }
-  //       } else {
-  //         // console.log('j11ojojo', edge.route.estimated_cost.value)
-  //         total_cost.transport += edge.route.estimated_cost.value;
-  //       }
-  //     }
-  //
-  //     covered_places.add(visit.place);
-  //   });
-  //   console.log(total_cost);
-  //   console.log(total_cost.accommodation + total_cost.food + total_cost.miscellaneous + total_cost.transport + total_cost.activities);
-  //   console.log(`Nr of routes without specified cost: ${routes_to_do.length}`)
-  //   routes_to_do.forEach((route, index) => {
-  //     console.log(`${index}: (${route.route_type.value}) ${route.source.name}, ${route.source.country.name} -> ${route.destination.name}, ${route.destination.country.name}`)
-  //   });
-  // }
 }

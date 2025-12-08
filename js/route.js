@@ -232,6 +232,18 @@ class Route {
     this.optimize = true;
   }
 
+  pause_callbacks = () => {
+    Object.values(this).forEach((prop) => {
+      if (prop instanceof Observable) prop.pause();
+    });
+  }
+
+  unpause_callbacks = (perform_callback) => {
+    Object.values(this).forEach((prop) => {
+      if (prop instanceof Observable) prop.unpause(perform_callback);
+    });
+  }
+
   compute_route_spline = (controlpoints) => {
     const start_dist = Math.sqrt( Math.pow((controlpoints[0][0]-this.source.coordinates.lat), 2) + Math.pow((controlpoints[0][1]-this.source.coordinates.lng), 2) );
     const end_dist = Math.sqrt( Math.pow((controlpoints[controlpoints.length - 1][0]-this.destination.coordinates.lat), 2) + Math.pow((controlpoints[controlpoints.length - 1][1]-this.destination.coordinates.lng), 2) );

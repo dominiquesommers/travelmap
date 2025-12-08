@@ -9,7 +9,6 @@ class VisitPopup {
 
     this.create_elements();
 
-    this.visit.nights.subscribe(this.update_nights);
     this.visit.entry_date.subscribe(this.update_entry_date);
     this.visit.exit_date.subscribe(this.update_exit_date);
 
@@ -23,17 +22,8 @@ class VisitPopup {
     // TODO call update_outgoing_edges, subscribed to included of outgoing_edge destinations.
 
     this.html_table = this.create_table();
-    this.update_nights(this.visit.nights.value);
   };
 
-  update_nights = (new_value, old_value=undefined) => {
-    this.night_span.innerHTML = new_value;
-    if (new_value === 0) {
-      this.decrement_nights.classList.toggle('disabled');
-    } else if (old_value === 0) {
-      this.decrement_nights.classList.toggle('disabled');
-    }
-  }
 
   update_entry_date = (new_value, old_value) => {
     this.entry_date_span.innerHTML = (new_value !== undefined) ? new_value.toDateString() : '';
@@ -275,8 +265,10 @@ class VisitPopup {
     this.next_edge_cost = document.createElement('span');
     this.next_edge_rent = document.createElement('span');
     this.next_edge = this.visit.next_edge;
-    this.decrement_nights = document.createElement('span');
-    this.night_span = document.createElement('span');
+    this.night_input = new HTMLNumber(this.visit.nights.value, [], (new_value, old_value) => {
+      this.visit.nights.value = new_value;
+    }, this.visit.place.map_handler.view_only);
+    // this.night_span = document.createElement('span');
     this.entry_date_span = document.createElement('span');
     this.exit_date_span = document.createElement('span');
   }
@@ -443,23 +435,12 @@ class VisitPopup {
     }
     const current_visit_name_span = document.createElement('span');
     current_visit_cell.appendChild(current_visit_name_span);
-    current_visit_name_span.innerHTML = `${this.visit.place.name}<sub>${this.visit.short_id}</sub>`;
-    current_visit_cell.appendChild(this.decrement_nights);
-    this.decrement_nights.innerHTML = '<sup>-</sup>';
-    this.decrement_nights.classList.add('minus');
-    this.decrement_nights.addEventListener('click', (event) => {
-      if (this.visit.place.map_handler.view_only) { return; }
-      this.visit.nights.value -= 1;
-    });
-    current_visit_cell.appendChild(this.night_span);
+    current_visit_name_span.innerHTML = `${this.visit.place.name}<sub>${this.visit.short_id}</sub> `;
+    current_visit_cell.appendChild(this.night_input.span);
+
     const increment_nights = document.createElement('span');
     current_visit_cell.appendChild(increment_nights);
-    increment_nights.innerHTML = '<sup>+</sup>';
-    increment_nights.classList.add('plus');
-    increment_nights.addEventListener('click', (event) => {
-      if (this.visit.place.map_handler.view_only) { return; }
-      this.visit.nights.value += 1;
-    });
+    increment_nights.innerHTML = '<sup>🌙</sup>';
 
     const delete_span = document.createElement('sub');
     current_visit_cell.appendChild(delete_span);
