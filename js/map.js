@@ -18,6 +18,7 @@ class MapHandler {
     this.routes = new Observable({});
           // { type: 'Feature', properties: {}, geometry: {'coordinates': source_route, 'type': 'LineString' } }});
     this.places = new Observable({});
+    this.additional_bookings = new Observable({});
     this.graph = new Graph(this);
   };
 
@@ -257,7 +258,7 @@ class MapHandler {
   }
 
   add_place = (place_id, name, country, coordinates, season=undefined, estimated_costs=undefined,
-               actual_costs=undefined, paids=undefined, activities=[], place_notes=[]) => {
+               activities=[], place_notes=[]) => {
     if (place_id === undefined) {
       const args = { 'parameters': {'name': name, 'country': (country instanceof Country) ? country.name : country,
           'lat': coordinates.lat, 'lng': coordinates.lng , 'season_id': season?.id, 'trip_id': this.trip_id}};
@@ -277,11 +278,10 @@ class MapHandler {
     } else {
       const new_place = {};
       estimated_costs = (estimated_costs !== undefined) ? estimated_costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
-      actual_costs = (actual_costs !== undefined) ? actual_costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
-      paids = (paids !== undefined) ? paids : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
+      // actual_costs = (actual_costs !== undefined) ? actual_costs : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
+      // paids = (paids !== undefined) ? paids : {'accommodation': 0, 'food': 0, 'miscellaneous': 0};
       console.log()
-      new_place[place_id] = new Place(place_id, name, country, coordinates, season, estimated_costs, actual_costs, paids,
-          activities, place_notes, this);
+      new_place[place_id] = new Place(place_id, name, country, coordinates, season, estimated_costs, activities, place_notes, this);
       this.places.value = {...this.places.value, ...new_place};
       return new_place[place_id];
     }

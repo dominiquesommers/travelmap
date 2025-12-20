@@ -46,7 +46,7 @@ class Country {
 }
 
 class Place {
-  constructor(id, name, country, coordinates, season, estimated_costs, actual_costs, paids, activities, notes, map_handler) {
+  constructor(id, name, country, coordinates, season, estimated_costs, activities, notes, map_handler) {
     this.id = id;
     this.name = name;
     this.country = country;
@@ -54,8 +54,6 @@ class Place {
     this.season = (season !== undefined) ? season :
         { jan: 1, feb: 1, mar: 1, apr: 1, may: 1, jun: 1, jul: 1, aug: 1, sep: 1, oct: 1, nov: 1, dec: 1, description: 'N/A', description_abbreviation: 'N/A' };
     this.estimated_costs = estimated_costs;
-    this.actual_costs = actual_costs;
-    this.paids = paids;
     this.activities = (activities === undefined) ? [] : activities;
     this.activities_descriptions_loaded = false;
     this.notes = (notes === undefined) ? [] : notes;
@@ -74,20 +72,25 @@ class Place {
     return `${this.name} ${country_flags[this.country.name]}`
   }
 
-  add_visit = (visit_id, nights, included, callback=(new_visit)=>{}) => {
+  add_visit = (visit_id, nights, included, callback=(new_visit)=>{},
+               accommodation_cost=0, food_cost=0, miscellaneous_cost=0,
+              booked_entry_date=undefined, booked_nights=0, booked_accommodation_url='', booking_id=undefined) => {
     if (visit_id === undefined) {
       const args = { 'parameters': {'place': this.id, 'nights': nights, 'included': included, 'plan_id': this.map_handler.plan_id } };
       backend_communication.call_google_function('POST',
                 'add_visit', args, (data) => {
         if (data['status'] === 'OK') {
-          callback(this.add_visit(data['visit_id'], nights, included));
+          callback(this.add_visit(data['visit_id'], nights, included, ()=>{}, accommodation_cost, food_cost,
+              miscellaneous_cost, booked_entry_date, booked_nights, booked_accommodation_url, booking_id));
         } else {
           console.log(data);
         }
       });
     } else {
       const short_id = (this.visits.value.length === 0) ? 1 : Math.max(...this.visits.value.map(visit => visit.short_id)) + 1;
-      const new_visit = new Visit(visit_id, short_id, this, nights, included);
+      const booking = (booking_id == null) ? undefined : new Booking(booking_id, this, accommodation_cost, food_cost,
+          miscellaneous_cost, booked_entry_date, booked_nights, booked_accommodation_url);
+      const new_visit = new Visit(visit_id, short_id, this, nights, included, booking);
       this.visits.value = [...this.visits.value, new_visit];
       return new_visit;
     }
@@ -155,15 +158,16 @@ class Place {
 
 
 class Visit {
-  constructor(id, short_id, place, nights, included=true) {
+  constructor(id, short_id, place, nights, included=true, booking=undefined) {
     this.id = id;
     this.short_id = short_id;
     this.place = place;
-    this.nights = new Observable(nights, this.set_nights);
-    this.nights.subscribe(this.nights_updated);
+    this.nights = new Observable(nights, this.set_natural);
+    this.nights.subscribe((new_value, old_value) => this.visit_updated('nights', new_value, old_value));
     this._outgoing_edges = new Observable([]);
     this.included = new Observable(included, this.set_included);
-    this.included.subscribe(this.included_updated)
+    this.included.subscribe((new_value, old_value) => this.visit_updated('included', new_value, old_value));
+    this.booking = booking;
     this.next_edge = new Observable(undefined, this.check_same);
     this.previous_edge = new Observable(undefined, this.check_same);
     this.entry_date = new Observable(undefined, this.check_same);
@@ -192,6 +196,25 @@ class Visit {
     return (this.entry_date.value !== undefined) && (this.exit_date.value !== undefined);
   }
 
+  is_paid_for = () => {
+    return this.booking !== undefined && this.booking.is_paid_for();
+  }
+
+  get_cost_by_cat = (category) => {
+    return {'accommodation': this.booking?.accommodation_cost, 'food': this.booking?.food_cost, 'miscellaneous': this.booking?.miscellaneous_cost}[category]
+  }
+
+  is_correctly_booked = () => {
+    if (!this.is_paid_for()) {
+      return true;
+    } else if (this.entry_date.value === undefined) {
+      return false;
+    } else {
+      return this.entry_date.value.toDateString() === this.booking.booked_entry_date.value.toDateString() &&
+             this.nights.value === this.booking.booked_nights.value;
+    }
+  }
+
   get_id = () => {
     return `${this.place.get_id()}:${this.id}`;
   }
@@ -201,42 +224,24 @@ class Visit {
     return new_value;
   }
 
-  set_nights = (new_nights, old_value) => {
-    if (new_nights < 0) throw new ValidationError('New nights is negative.');
-    return this.check_same(new_nights, old_value);
-  }
-
-  nights_updated = (new_nights, old_value) => {
-    const args = { 'parameters': {'id': this.id, 'column': 'nights', 'value': new_nights} };
-    backend_communication.call_google_function('POST',
-                'update_visit', args, (data) => {
-      if (data['status'] === 'NOT OK') { console.log(data); }
-    });
-    // backend_communication.fetch('/travel/update_visit/', args, (data) => {
-    //   if (data['status'] === 'NOT OK') { console.log(data); }
-    // });
+  set_natural = (new_value, old_value) => {
+    if (new_value < 0) throw new ValidationError('New value is negative.');
+    return this.check_same(new_value, old_value);
   }
 
   set_included = (new_included, old_value) => {
-    if ((new_included !== false) &&  (new_included !== true)) throw new ValidationError('New included is not a boolean.');
+    if ((new_included !== false) && (new_included !== true)) throw new ValidationError('New included is not a boolean.');
     return this.check_same(new_included, old_value);
   }
 
-  included_updated = (new_included, old_value) => {
-    const args = { 'parameters': {'id': this.id, 'column': 'included', 'value': new_included} };
-    backend_communication.call_google_function('POST',
-                'update_visit', args, (data) => {
+  visit_updated = (column, new_value, old_value) => {
+    const args = { 'parameters': {'id': this.id, 'column': column, 'value': new_value} };
+    backend_communication.call_google_function('POST', 'update_visit', args, (data) => {
       if (data['status'] === 'NOT OK') { console.log(data); }
     });
-    // backend_communication.fetch('/travel/update_visit/', args, (data) => {
-    //   if (data['status'] === 'NOT OK') { console.log(data); }
-    // });
   }
 
-  // update_next_edge = () => {
-  //   // TODO this will/should be handled by graph.
-  //   this.next_edge.value = this._outgoing_edges.find((edge) => edge.destination.included.value);
-  // };
+
 
   add_outgoing_edge = (destination, route, priority, rent_until, includes_accommodation, update_db, index=-1) => {
     index = -1;
@@ -296,19 +301,8 @@ class Visit {
             console.log(data);
           }
         });
-        // backend_communication.fetch('/travel/update_edge/', args, (data) => {
-        //   if (data['status'] === 'OK') {
-        //     this._outgoing_edges.value = ordered_edges;
-        //   } else {
-        //     console.log(data);
-        //   }
-        // });
       }
     }
-  };
-
-  add_marker = (map) => {
-    this.marker = new Marker(this, map); //.nights, this.place.coordinates, this.popup.popup);
   };
 
   compute_month_days = () => {

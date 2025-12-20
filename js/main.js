@@ -15,8 +15,6 @@ class TravelApp {
   }
 
   map_loaded = () => {
-    console.log(this.map_handler.plan_id);
-    console.log(this.map_handler.trip_id);
     backend_communication.call_google_function('GET', 'load_data',
         {'trip_name': this.trip_name, 'plan_name': this.plan_name},
     this.data_loaded);
@@ -89,8 +87,7 @@ class TravelApp {
 
     for (const [place_id, place_data] of Object.entries(data.places)) {
       const new_place = this.map_handler.add_place(place_id, place_data.name, this.map_handler.countries[place_data['country_id']],
-          place_data.coordinates, data.seasons[place_data['season_id']], place_data.estimated_costs, place_data.actual_costs,
-          place_data.paids, data['activities'][place_id], data['place_notes'][place_id]);
+          place_data.coordinates, data.seasons[place_data['season_id']], place_data.estimated_costs, data['activities'][place_id], data['place_notes'][place_id]);
     }
 
     for (const [route_id, route_data] of Object.entries(data.routes)) {
@@ -101,7 +98,11 @@ class TravelApp {
 
     const visits = {};
     for (const [visit_id, visit_data] of Object.entries(data.visits)) {
-      const visit = this.map_handler.places.value[visit_data.place].add_visit(visit_id, visit_data.nights, visit_data.included);
+      const booked_date = (visit_data.booked_entry_date === null) ? undefined : (new Date(visit_data.booked_entry_date)).toISOString().split('T')[0];
+      const visit = this.map_handler.places.value[visit_data.place].add_visit(
+          visit_id, visit_data.nights, visit_data.included, ()=>{}, visit_data.accommodation_cost, visit_data.food_cost, visit_data.miscellaneous_cost,
+          booked_date, visit_data.booked_nights, visit_data.booked_accommodation_url, visit_data.booking_id
+      );
       visits[visit_id] = visit;
     }
 
@@ -114,6 +115,12 @@ class TravelApp {
           source_visit.add_outgoing_edge(destination_visit, route, edge.priority, visits[edge.rent_until], edge.includes_accommodation, false);
         }
       }
+    }
+
+    for (const [booking_id, booking_data] of Object.entries(data.additional_bookings)) {
+      this.map_handler.additional_bookings.value[booking_id] = new Booking(booking_id, this.map_handler.places.value[booking_data.place],
+          booking_data.accommodation_cost, booking_data.food_cost,
+          booking_data.miscellaneous_cost, booking_data.booked_entry_date, booking_data.booked_nights, booking_data.booked_accommodation_url);
     }
 
     this.map_handler.graph.initializing_data = false;

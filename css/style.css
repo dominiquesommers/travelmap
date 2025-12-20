@@ -471,6 +471,7 @@ input:checked + .slider:before {
 }
 
 #url-input-editor {
+  width: 300px;
   position: absolute;
   z-index: 1000;
   padding: 5px 5px;

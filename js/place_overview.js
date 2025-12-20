@@ -65,6 +65,21 @@ class PlaceOverview {
     this.costs_div = document.createElement('div');
     this.html.appendChild(this.costs_div);
     this.add_costs();
+    this.place.visits.subscribe((new_visits, old_visits) => {
+      new_visits.forEach((visit) => {
+        if (!old_visits.includes(visit)) {
+          visit.entry_date.subscribe(this.add_costs);
+          visit.exit_date.subscribe(this.add_costs);
+        }
+      });
+      old_visits.forEach((visit) => {
+        if (!new_visits.includes(visit)) {
+          visit.entry_date.subscribe(this.add_costs);
+          visit.exit_date.subscribe(this.add_costs);
+        }
+      });
+      this.add_costs();
+    });
 
     const divider3 = document.createElement('span');
     divider3.innerHTML = '<hr>';
@@ -306,39 +321,145 @@ class PlaceOverview {
   }
 
   add_costs = () => {
+    this.costs_div.innerHTML = '';
     const costs_title = document.createElement('h3');
     this.costs_div.appendChild(costs_title);
     const title = document.createElement('span');
     costs_title.appendChild(title);
     title.innerHTML = 'Cost estimates:';
-
     const costs_div = document.createElement('div');
     this.costs_div.appendChild(costs_div);
-
-    add_collapsible(title, costs_div, '10vh');
+    add_collapsible(title, costs_div, '25vh');
 
     const costs_table = new HTMLTable(['season-table']);
     costs_div.appendChild(costs_table.table);
     const row1 = costs_table.add_header(['costs-title-row']);
-    costs_table.add_cell(0, ['cost-cell-title']).innerHTML = 'Accomm. (€/n)';
-    costs_table.add_cell(0, ['cost-cell-title']).innerHTML = 'Food (€/d)';
-    costs_table.add_cell(0, ['cost-cell-title']).innerHTML = 'Misc. (€/d)';
-    const row2 = costs_table.add_row(['costs-row']);
+    costs_table.add_cell(0, ['cost-cell-title']).innerHTML = 'Visits';
+    costs_table.add_cell(0, ['cost-cell-title']).innerHTML = '🏨 (€/🌙)'; //'Accomm. (€/n)';
+    costs_table.add_cell(0, ['cost-cell-title']).innerHTML = '🍴️(€/☀️)'; //'Food (€/☀️)';
+    costs_table.add_cell(0, ['cost-cell-title']).innerHTML = '🏷️ (€/☀️)'; 'Misc. (€/☀️)';
+    if (this.place.visits.value.length === 0 || (this.place.visits.value.every((visit) => !visit.is_visited()))) {
+      // TODO add single row if 0 visits covered en route, should not be 'mark-as-paid'able
+      this.add_cost_row(costs_table);
+    } else {
+      this.place.visits.value.filter((visit) => visit.is_visited()).sort((a, b) => a.entry_date.value - b.entry_date.value).forEach((visit) => {
+        // TODO add row for each visit, that is covered en route
+        this.add_cost_row(costs_table, visit);
+      });
+    }
+    // TODO add divider
+    this.place.visits.value.filter((visit) => !visit.is_visited()).forEach((visit) => {
+      // TODO add row for each visit that is not covered en route but has mark as paid values (these are anomalies)
+      this.add_cost_row(costs_table, visit, visit.is_paid_for());
+    });
+  }
 
+  change_estimated_cost = (category, new_value) => {
+    const args = {'parameters': {'place_id': this.place.id, 'column': `${category}_estimated_cost`, 'value': new_value}};
+    backend_communication.call_google_function('POST',
+      'update_place', args, (data) => {
+      console.log(data);
+      this.place.estimated_costs[category] = new_value;
+      if (data['status'] !== 'OK') console.log(data);
+    });
+  }
+
+  on_estimated_cost_input = (category, cost_table, input_index, value) => {
+    cost_table.row_cells.forEach((cells, index) => {
+      if (index > 0 && index !== input_index) cells[{'accommodation': 1, 'food': 2, 'miscellaneous': 3}[category]].firstChild.firstChild.innerHTML = value;
+    });
+  }
+
+  change_cost = (visit, category, new_value, est_act_paid) => {
+    if (est_act_paid === 'estimated') {
+      this.change_estimated_cost(category, new_value);
+    } else if (est_act_paid === 'actual') {
+      visit.get_cost_by_cat(category).value = new_value;
+    } else if (est_act_paid === 'paid') {
+      if (new_value) {
+        // Do nothing? This is implied by visit's cost set to anything > 0.
+        if (visit.entry_date.value === undefined) {
+          if (!confirm('Are you sure? This visit is not (yet) covered on your route.')) {
+            // TODO handle when cancel is clicked.
+          }
+        } else if (visit.booking === undefined || visit.booking === null || visit.booking?.id == null) {
+          // Create booking, if it does not exist yet.
+          const args = { 'parameters': {'booked_entry_date': visit.entry_date.value, 'booked_nights': visit.nights.value, 'place_id': visit.place.id} };
+          backend_communication.call_google_function('POST', 'add_booking', args, (data) => {
+            if (data['status'] === 'NOT OK') {
+              console.log(data);
+              alert('Unsuccessful.')
+            } else {
+              const visit_args = { 'parameters': {'id': visit.id, 'column': 'booking', 'value': data['booking_id']}};
+              backend_communication.call_google_function('POST', 'update_visit', visit_args, (data2) => {
+                if (data2['status'] === 'NOT OK') {
+                  console.log(data2);
+                } else {
+                  visit.booking = new Booking(data['booking_id'], visit.place, 0, 0, 0, visit.entry_date.value, visit.nights.value);
+                }
+              });
+            }
+          });
+        }
+      } else {
+        // TODO check what to do here, reset all booking info?
+
+      }
+    } else if (est_act_paid === 'url') {
+      visit.booking.booked_accommodation_url.value = new_value;
+    }
+  }
+
+  add_cost_row = (costs_table, visit = undefined, warning=false) => {
+    const row_index = costs_table.rows.length;
+    costs_table.add_row(['costs-row']);
+    const booking_cell = costs_table.add_cell(costs_table.rows.length - 1, ['activity-cell', 'cost']);
+    if (visit === undefined) {
+      booking_cell.innerHTML = '(no visits)';
+    } else {
+      let celdate = '-';
+      let celnights = visit.nights.value;
+      if (visit.booking?.booked_entry_date.value !=  null) {
+        celdate = `${visit.booking.booked_entry_date.value.toDateString()}`;
+        if (visit.booking?.booked_nights.value !== undefined) {
+          celnights = visit.booking?.booked_nights.value;
+        }
+      } else if (visit.entry_date.value != null) {
+        celdate = `(${visit.entry_date.value.toDateString()})`;
+      }
+      booking_cell.innerHTML = `${celdate} • ${celnights}<sup>🌙</sup> (${visit.short_id})`;
+    }
     ['accommodation', 'food', 'miscellaneous'].forEach((cost_type) => {
-      const cost_cell = costs_table.add_cell(1, ['activity-cell', 'cost']);
-      const cost_span = new HTMLCost([], (value, prefix) => {
-        const cost_cat = (prefix === 'paid') ? 'paid' : `${prefix}_cost`;
-        const args = {'parameters': {'place_id': this.place.id, 'column': `${cost_type}_${cost_cat}`, 'value': value}};
-        backend_communication.call_google_function('POST',
-          'update_place', args, (data) => {
-          console.log(data);
-          if (data['status'] !== 'OK') console.log(data)
-        });
-      }, this.place.paids[cost_type], this.place.map_handler.view_only);
-      cost_span.estimated_cost.span.innerHTML = this.place.estimated_costs[cost_type];
-      cost_span.actual_cost.span.innerHTML = this.place.actual_costs[cost_type]; // TODO fix
-      cost_cell.appendChild(cost_span.span);
+      const cost_cell = costs_table.add_cell(costs_table.rows.length - 1, ['activity-cell', 'cost']);
+      if (visit === undefined) {
+        const cost_span = new HTMLNumber(this.place.estimated_costs[cost_type], [], (value) => {
+          this.change_estimated_cost(cost_type, value);
+        }, this.place.map_handler.view_only, ()=>{},
+            (value)=> this.on_estimated_cost_input(cost_type, costs_table, row_index, value));
+        cost_cell.appendChild(cost_span.span);
+      } else {
+        const element_class = (cost_type === 'accommodation') ? HTMLLinkCost : HTMLCost;
+        const cost_span = new element_class(
+            [],
+            (value, est_act_paid) => this.change_cost(visit, cost_type, value, est_act_paid),
+            visit.get_cost_by_cat(cost_type)?.value !== undefined && visit.get_cost_by_cat(cost_type)?.value > 0,
+            this.place.map_handler.view_only,
+            ()=>{},
+            (value, est_act_paid) => {
+              if (est_act_paid === 'estimated') this.on_estimated_cost_input(cost_type, costs_table, row_index, value)
+            }
+        );
+        if (cost_type === 'accommodation') {
+          cost_span.set_url(visit.booking?.booked_accommodation_url.value);
+        }
+        cost_span.estimated_cost.span.innerHTML = this.place.estimated_costs[cost_type];
+        cost_span.estimated_cost.span.style.color = (visit.is_correctly_booked()) ? '#005009' : '#c57106';
+        if (warning) {
+          cost_span.estimated_cost.span.style.color = '#a30e00';
+        }
+        cost_span.actual_cost.span.innerHTML = (visit.get_cost_by_cat(cost_type)?.value == null) ? 0 : visit.get_cost_by_cat(cost_type).value;
+        cost_cell.appendChild(cost_span.span);
+      }
     });
   }
 

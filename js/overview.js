@@ -312,21 +312,14 @@ class Overview {
         }
       }
       if (rent_until_edge === undefined || !rent_until_edge.includes_accommodation) {
-        const est_cost = visit.nights.value * visit.place.estimated_costs.accommodation;
-        const act_cost = ((visit.place.actual_costs?.accommodation > 0) ? (visit.nights.value * visit.place.actual_costs.accommodation) : est_cost)
         country_costs[visit.place.country.name].accommodation += visit.nights.value * visit.place.estimated_costs.accommodation;
-        country_costs_actual[visit.place.country.name].accommodation += visit.nights.value * ((visit.place.actual_costs?.accommodation > 0) ? visit.place.actual_costs.accommodation : visit.place.estimated_costs.accommodation);
-        if (visit.place.name === 'Melbourne') {
-          console.log(visit.place.actual_costs);
-          console.log(est_cost)
-          console.log(act_cost)
-        }
+        country_costs_actual[visit.place.country.name].accommodation += visit.nights.value * ((visit.get_cost_by_cat('accommodation')?.value > 0) ? visit.get_cost_by_cat('accommodation').value : visit.place.estimated_costs.accommodation);
       }
 
       country_costs[visit.place.country.name].food += visit.nights.value * visit.place.estimated_costs.food;
-      country_costs_actual[visit.place.country.name].food += visit.nights.value * ((visit.place.actual_costs?.food > 0) ? visit.place.actual_costs.food : visit.place.estimated_costs.food);
+      country_costs_actual[visit.place.country.name].food += visit.nights.value * ((visit.get_cost_by_cat('food')?.value > 0) ? visit.get_cost_by_cat(food).value : visit.place.estimated_costs.food);
       country_costs[visit.place.country.name].miscellaneous += visit.nights.value * visit.place.estimated_costs.miscellaneous;
-      country_costs_actual[visit.place.country.name].miscellaneous += visit.nights.value * ((visit.place.actual_costs?.miscellaneous > 0) ? visit.place.actual_costs.miscellaneous : visit.place.estimated_costs.miscellaneous);
+      country_costs_actual[visit.place.country.name].miscellaneous += visit.nights.value * ((visit.get_cost_by_cat('miscellaneous')?.value> 0) ? visit.get_cost_by_cat('miscellaneous').value : visit.place.estimated_costs.miscellaneous);
 
       if (!covered_places.has(visit.place)) {
         covered_places.add(visit.place);
@@ -669,6 +662,7 @@ class Overview {
     // Date rules in place notes, e.g., visit should include a Saturday
     // Date rules in route notes, e.g., traverse should be on a Saturday
     // Date rules in country notes, e.g., country consecutive visits should be <= 30 days
+    // TODO check for overlaps with visits and additional bookings.
 
     const covered_places = new Set();
     const country_visits = {}
@@ -676,6 +670,29 @@ class Overview {
     country_visits[current_country] = [1];
     let rent_until_edge = undefined;
     this.maphandler.graph.sorted_covered_visits.forEach(visit => {
+      if (visit.booking == null) {
+        for (const booking of Object.values(this.maphandler.additional_bookings.value)) {
+          const match_name = booking.place.name === visit.place.name;
+          const match_date = booking.booked_entry_date?.value.toDateString() === visit.entry_date?.value.toDateString();
+          const match_nights = booking.booked_nights?.value === visit.nights?.value;
+          if (match_name && match_date && match_nights) {
+            if (confirm(`Found matching booking for the visit in ${visit.place.name} at ${visit.entry_date.value.toDateString()} for ${visit.nights.value} nights. Do you want to link them?`)) {
+              const visit_args = { 'parameters': {'id': visit.id, 'column': 'booking', 'value': booking.id}};
+              backend_communication.call_google_function('POST', 'update_visit', visit_args, (data) => {
+                if (data['status'] === 'NOT OK') {
+                  console.log(data);
+                } else {
+                  visit.booking = booking;
+                }
+              });
+            } else {
+              // TODO add to warning?
+            }
+            break;
+          }
+        }
+      }
+
       if (visit === rent_until_edge?.rent_until) {
         rent_until_edge = undefined;
       }

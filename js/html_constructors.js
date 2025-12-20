@@ -29,7 +29,8 @@ class SVGHandler {
 }
 
 class HTMLCost {
-  constructor(css_classes=[], change_callback=(value)=>{}, paid=false, view_only=false) {
+  constructor(css_classes=[], change_callback=(value)=>{}, paid=false, view_only=false,
+              on_open=()=>{}, on_input=(value)=>{}) {
     this.context_menu = document.createElement('div');
     this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
     this.context_menu.classList.add("hidden")
@@ -40,10 +41,13 @@ class HTMLCost {
     this.mark_as_paid_button.classList.add('mark-as-paid');
     this.span = document.createElement('span');
     this.span.classList.add('pointer');
-    this.estimated_cost = new HTMLNumber(undefined, css_classes, (value) => change_callback(value, 'estimated'), view_only);
+    this.change_callback = change_callback;
+    this.estimated_cost = new HTMLNumber(undefined, css_classes, (value) => change_callback(value, 'estimated'), view_only,
+        () => on_open('estimated'), (value) => on_input(value, 'estimated'));
     this.estimated_cost.span.style.userSelect = 'none';
     this.estimated_cost.span.classList.add('editable-right-clickable');
-    this.actual_cost = new HTMLNumber(undefined, css_classes, (value) => change_callback(value, 'actual'), view_only);
+    this.actual_cost = new HTMLNumber(undefined, css_classes, (value) => change_callback(value, 'actual'), view_only,
+        () => on_open('actual'), (value) => on_input(value, 'actual'));
     this.actual_cost.span.style.userSelect = 'none';
     this.actual_cost.span.style = 'margin-left: 0px; cursor: pointer;';
     this.actual_cost.span.classList.add('hidden', 'editable-right-clickable');
@@ -138,8 +142,83 @@ class HTMLCost {
   }
 }
 
+class HTMLLinkCost extends HTMLCost {
+  constructor(css_classes=[], change_callback=(value)=>{}, paid=false, view_only=false,
+              on_open=()=>{}, on_input=()=>{}) {
+    super(css_classes, change_callback, paid, view_only, on_open, on_input);
+    this.url_input_field = document.createElement('input');
+    this.url_input_field.type = 'text';
+    this.url_input_field.id = 'url-input-editor';
+    this.url_input_field.style.width = '300px';
+    this.url_input_field.placeholder = 'Enter new URL and press Enter';
+    this.context_menu.appendChild(this.url_input_field);
+    this.link_span = document.createElement('span');
+    const svgContent = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link-icon lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
+    this.url = "";
+    this.href = document.createElement('a');
+    this.href.href = this.url;
+    this.href.target = '_blank';
+    this.href.rel = 'noopener noreferrer';
+    this.href.classList.add('no-link-underline');
+    this.href.innerHTML = '🔗';
+    // this.link_span.innerHTML = `<a href="${this.url}" target="_blank" rel="noopener noreferrer" class="no-link-underline">🔗</a>`;
+    this.link_span.style = 'padding-left: 2px; user-select: none;';
+    this.link_span.appendChild(this.href);
+    this.span.appendChild(this.link_span);
+  }
+
+  _handle_right_click = (event) => {
+    if (event.target === this.link_span || this.link_span.contains(event.target)) {
+      this.mark_as_paid_button.classList.add('hidden');
+      this.url_input_field.classList.remove('hidden');
+      this.url_input_field.value = this.url;
+      this.url_input_field.focus();
+      this._setupUrlInputHandlers();
+    } else {
+      this.url_input_field.classList.add('hidden');
+      this.mark_as_paid_button.classList.remove('hidden');
+      this.mark_as_paid_button.innerHTML = this.is_paid ? 'Mark as <b>unpaid</b>' : 'Mark as <b>paid</b>';
+    }
+  }
+
+  set_url = (newUrl, fromInputField=false) => {
+    if (!fromInputField) {
+      this.url_input_field.value = newUrl;
+    }
+    if (newUrl && this.url !== newUrl) {
+      this.url = newUrl;
+      const anchor = this.link_span.querySelector('a');
+      if (anchor) anchor.href = newUrl;
+      return true;
+    }
+    return false;
+  }
+
+  _setupUrlInputHandlers() {
+    this.url_input_field.onkeyup = null;
+    this.url_input_field.onblur = null;
+    const saveAndClose = () => {
+      const newUrl = this.url_input_field.value.trim();
+      if (this.set_url(newUrl, true)) {
+        this.change_callback(newUrl, 'url');
+      }
+      this.context_menu.classList.add('hidden');
+    };
+    this.url_input_field.onkeyup = (e) => {
+        if (['Enter', 'Tab'].includes(e.key)) {
+          this.url_input_field.blur();
+        } else if (e.key === 'Escape') {
+          this.context_menu.classList.add('hidden');
+        }
+    };
+    this.url_input_field.onblur = saveAndClose;
+  }
+
+}
+
 class HTMLNumber {
-  constructor(value=undefined, css_classes=[], change_callback=(value)=>{}, view_only=false, on_open=()=>{}) {
+  constructor(value=undefined, css_classes=[], change_callback=(value)=>{}, view_only=false,
+              on_open=()=>{}, on_input=()=>{}) {
     this.value = value;
     this.span = document.createElement('span');
     if (value !== undefined) {
@@ -156,12 +235,29 @@ class HTMLNumber {
     css_classes?.forEach(css_class => this.span.classList.add(css_class));
     this.on_open = on_open;
     this.change_callback = change_callback;
+    this.on_input = on_input;
 
-    this.span.addEventListener('keypress', (event) => {
-	    if (isNaN(String.fromCharCode(event.which)) || event.code === 'Space') event.preventDefault();
-      if (event.key === 'Enter') {
-        this.span.contentEditable = false;
+    this.span.addEventListener('keydown', (event) => {
+      // console.log('keydown!!', event.key)
+      const is_meta_key = ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Meta', 'Backspace', 'Delete'].includes(event.key);
+      if (['Enter', 'Tab'].includes(event.key)) {
         event.preventDefault();
+        this.span.contentEditable = false;
+        this.on_enter();
+      } else if (!is_meta_key && !/\d/.test(event.key)) {
+        // console.log('not a digit')
+        event.preventDefault();
+      } else if (/\d/.test(event.key) || ['Backspace', 'Delete'].includes(event.key)) {
+        // console.log('actually changed something!', on_input)
+        // on_input(this.span.innerHTML);
+      }
+    });
+
+    this.span.addEventListener('input', (event) => {
+      let value = this.span.innerHTML.replace(/\D/g, '');
+      on_input(value);
+      if (this.span.innerHTML !== value) {
+        this.span.innerHTML = value;
         this.on_enter();
       }
     });
@@ -207,6 +303,9 @@ class HTMLNumber {
   on_enter() {}
 
   saveAndCloseEditor() {
+    if (this.span.innerHTML === '') {
+      this.on_input(Number(this.span.innerHTML));
+    }
     this.span.innerHTML = Number(this.span.innerHTML);
     this.span.contentEditable = false;
     this.span.style.userSelect = 'none';

@@ -219,9 +219,6 @@ class VisitPopup {
           if (edge !== this.visit.next_edge.value) {
             this.next_visit.classList.add('opacity-04');
             this.next_route_details_cell.classList.add('opacity-04');
-            if (this.visit.place.name === 'Rotterdam') {
-              console.log(this.route_details_cell);
-            }
             this.next_edge_type.classList.add('opacity-04');
           }
         }
@@ -268,13 +265,11 @@ class VisitPopup {
     this.night_input = new HTMLNumber(this.visit.nights.value, [], (new_value, old_value) => {
       this.visit.nights.value = new_value;
     }, this.visit.place.map_handler.view_only);
-    // this.night_span = document.createElement('span');
     this.entry_date_span = document.createElement('span');
     this.exit_date_span = document.createElement('span');
   }
 
   add_edge = () => {
-    // console.log('add new edge.');
     this.visit.place.marker.popup.remove();
     this.visit.place.map_handler.new_edge_source = this.visit;
     this.visit.place.map_handler.toggle_shade();
