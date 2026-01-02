@@ -25,7 +25,6 @@ class Booking {
 
   booking_updated = (column, new_value, old_value) => {
     const args = { 'parameters': {'id': this.id, 'column': column, 'value': new_value} };
-    console.log('update_booking', args);
     backend_communication.call_google_function('POST', 'update_booking', args, (data) => {
       if (data['status'] === 'NOT OK') { console.log(data); }
     });

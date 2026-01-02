@@ -317,7 +317,7 @@ class Overview {
       }
 
       country_costs[visit.place.country.name].food += visit.nights.value * visit.place.estimated_costs.food;
-      country_costs_actual[visit.place.country.name].food += visit.nights.value * ((visit.get_cost_by_cat('food')?.value > 0) ? visit.get_cost_by_cat(food).value : visit.place.estimated_costs.food);
+      country_costs_actual[visit.place.country.name].food += visit.nights.value * ((visit.get_cost_by_cat('food')?.value > 0) ? visit.get_cost_by_cat('food').value : visit.place.estimated_costs.food);
       country_costs[visit.place.country.name].miscellaneous += visit.nights.value * visit.place.estimated_costs.miscellaneous;
       country_costs_actual[visit.place.country.name].miscellaneous += visit.nights.value * ((visit.get_cost_by_cat('miscellaneous')?.value> 0) ? visit.get_cost_by_cat('miscellaneous').value : visit.place.estimated_costs.miscellaneous);
 
