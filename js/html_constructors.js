@@ -520,6 +520,7 @@ class HTMLSelectableText extends HTMLText {
               disable_text_edit=false, css_classes=[], text_change_callback=()=>{}, sp='p', enter_enter=false, view_only=false) {
     super(inner, css_classes, text_change_callback, sp, enter_enter, Boolean(view_only | disable_text_edit));
     this.css_classes = css_classes;
+    this.view_only = view_only;
     this.context_menu = document.createElement('div');
     // this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none; display: none; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);';
     this.context_menu.style = 'position: fixed; z-index: 10000; user-select: none;';
@@ -543,7 +544,8 @@ class HTMLSelectableText extends HTMLText {
     });
     this.animationFrameId = null;
 
-    new Sortable(this.list, {
+    if (!view_only) {
+      new Sortable(this.list, {
         animation: 150,
         ghostClass: 'bg-gray-300',
         onEnd: (evt) => {
@@ -559,7 +561,8 @@ class HTMLSelectableText extends HTMLText {
             }
           }
         }
-    });
+      });
+    }
 
     const update_menu_position = () => {
       if (this.context_menu.classList.contains('hidden')) {
@@ -673,12 +676,14 @@ class HTMLSelectableText extends HTMLText {
     // option_span.style = window.getComputedStyle(this.span);
     option_span.innerHTML = v;
     option.appendChild(option_span);
-    const option_delete = document.createElement('sub');
-    option_delete.classList.add('pointer', 'right-span', 'delete-btn');
-    option_delete.setAttribute('data-action', 'delete')
-    option_delete.innerHTML = ' 🗑️';
-    // option_delete.innerHTML = 'X';
-    option.appendChild(option_delete);
+    if (!this.view_only) {
+      const option_delete = document.createElement('sub');
+      option_delete.classList.add('pointer', 'right-span', 'delete-btn');
+      option_delete.setAttribute('data-action', 'delete')
+      option_delete.innerHTML = ' 🗑️';
+      // option_delete.innerHTML = 'X';
+      option.appendChild(option_delete);
+    }
     this.list.appendChild(option);
     return option_span;
   }

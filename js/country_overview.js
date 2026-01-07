@@ -183,7 +183,6 @@ class CountryOverview {
     cost_span.estimated_cost.span.innerHTML = estimated_cost;
     cost_span.actual_cost.span.innerHTML = actual_cost;
     cost_cell.appendChild(cost_span.span);
-    console.log(this.country.map_handler.view_only);
     if (!this.country.map_handler.view_only) {
       const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
       const delete_icon = document.createElement('span');
