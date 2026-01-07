@@ -619,29 +619,32 @@ class PlaceOverview {
     cost_span.estimated_cost.span.innerHTML = estimated_cost;
     cost_span.actual_cost.span.innerHTML = actual_cost;
     cost_cell.appendChild(cost_span.span);
-    const delete_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'delete']);
-    const delete_icon = document.createElement('span');
-    delete_cell.appendChild(delete_icon);
-    delete_icon.classList.add('pointer');
-    delete_icon.addEventListener('click', () => {
-      if (this.place.map_handler.view_only) { return };
-      if (confirm('Are you sure you want to delete this activity?')) {
-        if (activity_id === undefined) {
-          this.activities_table.table.deleteRow(row.rowIndex);
-        } else {
-          const args = {'parameters': {'activity_id': activity_id}};
-          backend_communication.call_google_function('POST',
-            'remove_activity', args, (data) => {
-              if (data['status'] === 'OK') {
-                this.activities_table.table.deleteRow(row.rowIndex);
-              } else {
-                console.log(data)
-              }
-            });
+
+    if (!this.place.map_handler.view_only) {
+      const delete_cell = this.activities_table.add_cell(row_index, ['activity-cell', 'delete']);
+      const delete_icon = document.createElement('span');
+      delete_cell.appendChild(delete_icon);
+      delete_icon.classList.add('pointer');
+      delete_icon.addEventListener('click', () => {
+        if (this.place.map_handler.view_only) { return };
+        if (confirm('Are you sure you want to delete this activity?')) {
+          if (activity_id === undefined) {
+            this.activities_table.table.deleteRow(row.rowIndex);
+          } else {
+            const args = {'parameters': {'activity_id': activity_id}};
+            backend_communication.call_google_function('POST',
+              'remove_activity', args, (data) => {
+                if (data['status'] === 'OK') {
+                  this.activities_table.table.deleteRow(row.rowIndex);
+                } else {
+                  console.log(data)
+                }
+              });
+          }
         }
-      }
-    });
-    delete_icon.innerHTML = '🗑️';
+      });
+      delete_icon.innerHTML = '🗑️';
+    }
   }
 
   add_notes = () => {
@@ -767,28 +770,31 @@ class PlaceOverview {
     cost_span.estimated_cost.span.innerHTML = estimated_cost;
     cost_span.actual_cost.span.innerHTML = actual_cost;
     cost_cell.appendChild(cost_span.span);
-    const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
-    const delete_icon = document.createElement('span');
-    delete_cell.appendChild(delete_icon);
-    delete_icon.classList.add('pointer');
-    delete_icon.addEventListener('click', () => {
-      if (this.place.map_handler.view_only) { return; }
-      if (confirm('Are you sure you want to delete this place note?')) {
-        if (note_id === undefined) {
-          this.notes_table.table.deleteRow(row.rowIndex);
-        } else {
-          const args = {'parameters': {'note_id': note_id}};
-          backend_communication.call_google_function('POST',
-              'remove_place_note', args, (data) => {
-                if (data['status'] === 'OK') {
-                  this.notes_table.table.deleteRow(row.rowIndex);
-                } else {
-                  console.log(data)
-                }
-              });
+
+    if (!this.place.map_handler.view_only) {
+      const delete_cell = this.notes_table.add_cell(row_index, ['activity-cell', 'delete']);
+      const delete_icon = document.createElement('span');
+      delete_cell.appendChild(delete_icon);
+      delete_icon.classList.add('pointer');
+      delete_icon.addEventListener('click', () => {
+        if (this.place.map_handler.view_only) { return; }
+        if (confirm('Are you sure you want to delete this place note?')) {
+          if (note_id === undefined) {
+            this.notes_table.table.deleteRow(row.rowIndex);
+          } else {
+            const args = {'parameters': {'note_id': note_id}};
+            backend_communication.call_google_function('POST',
+                'remove_place_note', args, (data) => {
+                  if (data['status'] === 'OK') {
+                    this.notes_table.table.deleteRow(row.rowIndex);
+                  } else {
+                    console.log(data)
+                  }
+                });
+          }
         }
-      }
-    });
-    delete_icon.innerHTML = '🗑️';
+      });
+      delete_icon.innerHTML = '🗑️';
+    }
   }
 }

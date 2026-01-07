@@ -108,57 +108,64 @@ class RoutePopup {
     divider3.innerHTML = '<sup>🌙</sup> '; //' nights.'
     cell5.appendChild(divider3);
 
-    const delete_span = document.createElement('sub');
-    cell5.appendChild(delete_span);
-    delete_span.style = 'margin-left: 2px;'
-    delete_span.innerHTML = '🗑️';
-    // delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
-    delete_span.classList.add('pointer');
-    delete_span.addEventListener('click', (event) => {
-      if (confirm('Are you sure you want to delete this route?')) {
-        console.log('delete route.');
-        this.route.map_handler.delete_route(this.route);
-      }
-    });
+    if (!this.route.map_handler.view_only) {
+      const delete_span = document.createElement('sub');
+      cell5.appendChild(delete_span);
+      delete_span.style = 'margin-left: 2px;'
+      delete_span.innerHTML = '🗑️';
+      // delete_span.innerHTML = ' <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" x="0" y="0" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="m62.205 150 26.569 320.735C90.678 493.865 110.38 512 133.598 512h244.805c23.218 0 42.92-18.135 44.824-41.265L449.795 150H62.205zm118.781 302c-7.852 0-14.458-6.108-14.956-14.063l-15-242c-.513-8.276 5.771-15.395 14.033-15.908 8.569-.601 15.381 5.757 15.908 14.033l15 242c.531 8.57-6.25 15.938-14.985 15.938zM271 437c0 8.291-6.709 15-15 15s-15-6.709-15-15V195c0-8.291 6.709-15 15-15s15 6.709 15 15v242zm89.97-241.062-15 242c-.493 7.874-7.056 14.436-15.908 14.033-8.262-.513-14.546-7.632-14.033-15.908l15-242c.513-8.276 7.764-14.297 15.908-14.033 8.262.513 14.546 7.632 14.033 15.908zM451 60h-90V45c0-24.814-20.186-45-45-45H196c-24.814 0-45 20.186-45 45v15H61c-16.569 0-30 13.431-30 30 0 16.567 13.431 30 30 30h390c16.569 0 30-13.433 30-30 0-16.569-13.431-30-30-30zm-120 0H181V45c0-8.276 6.724-15 15-15h120c8.276 0 15 6.724 15 15v15z" fill="#000000" opacity="1" data-original="#000000" class=""></path></g></svg>';
+      delete_span.classList.add('pointer');
+      delete_span.addEventListener('click', (event) => {
+        if (confirm('Are you sure you want to delete this route?')) {
+          console.log('delete route.');
+          this.route.map_handler.delete_route(this.route);
+        }
+      });
 
-
-    this.reverse_span = document.createElement('span');
-    cell5.appendChild(this.reverse_span);
-    this.reverse_span.style = 'margin-left: 2px;'
-    this.reverse_span.innerHTML = '⇄';
-    this.reverse_span.title = 'Add the reverse route, copying all details.';
-    this.reverse_span.classList.add('pointer', 'hidden');
-    this.reverse_span.addEventListener('click', (event) => {
-      this.route.map_handler.add_route(undefined, this.route.destination.id, this.route.source.id, this.route.route_type.value,
+      this.reverse_span = document.createElement('span');
+      cell5.appendChild(this.reverse_span);
+      this.reverse_span.style = 'margin-left: 2px;'
+      this.reverse_span.innerHTML = '⇄';
+      this.reverse_span.title = 'Add the reverse route, copying all details.';
+      this.reverse_span.classList.add('pointer', 'hidden');
+      this.reverse_span.addEventListener('click', (event) => {
+        this.route.map_handler.add_route(undefined, this.route.destination.id, this.route.source.id, this.route.route_type.value,
         this.route.distance.value, this.route.duration.value, this.route.estimated_cost.value, this.route.actual_cost.value,
-        this.route.paid.value, this.route.nights.value, this.route.route.value.slice().reverse(), [], (new_route)=> {
+        this.route.paid.value, this.route.nights.value, this.route.route.value.slice().reverse(), [], (new_route) => {
           let notes_correctly_loaded = true;
           this.route.notes.forEach(note => {
-            const args = {'parameters': {'route_id': new_route.id, 'description': note.description, 'trip_id': this.route.map_handler.trip_id}};
-            backend_communication.call_google_function('POST',
-            'add_route_note', args, (data) => {
-              if (data['status'] === 'OK') {
-                new_route.notes.push({id: data['note_id']});
-                new_route.overview.add_note(data['note_id'], note.description);
-              } else {
-                console.log(data);
-                notes_correctly_loaded = false;
+            const args = {
+              'parameters': {
+                'route_id': new_route.id,
+                'description': note.description,
+                'trip_id': this.route.map_handler.trip_id
               }
-            });
+            };
+            backend_communication.call_google_function('POST',
+                'add_route_note', args, (data) => {
+                  if (data['status'] === 'OK') {
+                    new_route.notes.push({id: data['note_id']});
+                    new_route.overview.add_note(data['note_id'], note.description);
+                  } else {
+                    console.log(data);
+                    notes_correctly_loaded = false;
+                  }
+                });
           });
           if (notes_correctly_loaded) {
             new_route.notes_descriptions_loaded = true;
           }
         });
-    });
+      });
 
-    const reverse_route = Object.values(this.route.map_handler.routes.value).find(
-        route => route.source === this.route.destination && route.destination === this.route.source && route.route_type.value === this.route.route_type.value);
+      const reverse_route = Object.values(this.route.map_handler.routes.value).find(
+          route => route.source === this.route.destination && route.destination === this.route.source && route.route_type.value === this.route.route_type.value);
 
-    if (reverse_route === undefined) {
-      this.add_reversity();
-    } else {
-      reverse_route.route_popup.remove_reversity();
+      if (reverse_route === undefined) {
+        this.add_reversity();
+      } else {
+        reverse_route.route_popup.remove_reversity();
+      }
     }
 
     const cell10 = table_constructor.add_cell(2, ['leftie']);
