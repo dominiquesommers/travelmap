@@ -193,7 +193,11 @@ const country_flags = {
   "Thailand": '🇹🇭',
   "Vietnam": '🇻🇳',
   "Argentina": '🇦🇷',
-  "Malaysia": '🇲🇾'
+  "Malaysia": '🇲🇾',
+  "Brazil": '🇧🇷',
+  "Uruguay": '🇺🇾',
+  "Belgium": '🇧🇪',
+  "Germany": '🇩🇪',
 }
 
 const country_abbreviations = {
